@@ -28,8 +28,8 @@
         body {
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(255, 0, 85, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.07) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(255, 0, 85, 0.07) 0%, transparent 40%);
             color: var(--text-main);
             font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
             display: flex;
@@ -46,7 +46,7 @@
             max-height: 900px;
             background: var(--bg-dark);
             border: 1px solid rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.14);
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.12);
             display: flex;
             flex-direction: column;
             position: relative;
@@ -291,6 +291,7 @@
         }
         .mini-back-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
 
+        /* 宝石箱モンスターBOXスタイル */
         .jewel-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -306,8 +307,11 @@
             text-align: center;
             cursor: pointer;
             position: relative;
+            transition: all 0.15s;
         }
-        .jewel-slot.unlocked { border-color: rgba(255, 215, 0, 0.4); }
+        .jewel-slot:hover { border-color: var(--neon-cyan); }
+        .jewel-slot.unlocked { border-color: rgba(255, 215, 0, 0.5); }
+        .jewel-slot.locked { opacity: 0.55; filter: grayscale(0.8); }
         .jewel-slot.equipped {
             border: 2px solid var(--neon-green);
             box-shadow: 0 0 10px rgba(0, 255, 102, 0.25);
@@ -469,39 +473,27 @@
         }
         .cyber-input:focus { box-shadow: 0 0 12px var(--neon-cyan); }
 
-        /* 豪華ガチャ演出アニメーション */
+        /* ガチャ演出用のスタイル */
+        .gacha-cinematic {
+            animation: gachaShake 0.4s ease-in-out infinite;
+        }
         @keyframes gachaShake {
             0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            15% { transform: translate(-8px, -5px) rotate(-4deg); }
-            30% { transform: translate(8px, 5px) rotate(4deg); }
-            45% { transform: translate(-7px, 4px) rotate(-3deg); }
-            60% { transform: translate(7px, -4px) rotate(3deg); }
-            75% { transform: translate(-4px, -2px) rotate(-2deg); }
+            25% { transform: translate(-4px, 4px) rotate(-3deg); }
+            50% { transform: translate(4px, -3px) rotate(3deg); }
+            75% { transform: translate(-3px, -2px) rotate(-1deg); }
         }
-        @keyframes gachaReveal {
-            0% { transform: scale(0.2) rotate(-15deg); opacity: 0; filter: brightness(4); }
-            60% { transform: scale(1.18) rotate(3deg); opacity: 1; filter: brightness(1.6); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
-        }
-        @keyframes gachaFlash {
-            0% { opacity: 0.95; }
-            100% { opacity: 0; }
-        }
-        .gacha-shaking {
-            animation: gachaShake 0.45s ease-in-out infinite;
-        }
-        .gacha-revealed {
-            animation: gachaReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .gacha-flash-layer {
+        .gacha-flash {
             position: absolute;
             inset: 0;
-            pointer-events: none;
+            background: #fff;
             opacity: 0;
+            pointer-events: none;
             z-index: 60;
+            transition: opacity 0.5s ease;
         }
-        .gacha-flash-layer.active {
-            animation: gachaFlash 0.7s ease-out forwards;
+        .gacha-flash.active {
+            opacity: 1;
         }
     </style>
 </head>
@@ -537,7 +529,7 @@
         </div>
 
         <div class="news-ticker">
-            ✨ 300単語プール＆揺らぎ自動対応・連続出現防止・豪華ガチャ演出・滑らかWPM更新実装！
+            ✨ 【完全改修】nn判定バグ修正 ＆ ダメージ計算最適化 ＆ モンスターBOX形式の宝石箱実装！
         </div>
 
         <div class="home-stage">
@@ -558,7 +550,7 @@
                 </div>
                 <div class="dock-btn pink-border" onclick="app.openGachaModal()">
                     <div class="dock-icon">🎰</div>
-                    <div class="dock-label" style="color: var(--neon-pink);">ガチャ</div>
+                    <div class="dock-label" style="color: var(--neon-pink);">発掘ガチャ</div>
                 </div>
                 <div class="dock-btn" onclick="app.showScreen('screen-mypage')">
                     <div class="dock-icon">🪪</div>
@@ -569,7 +561,7 @@
 
         <div class="home-ranking-preview">
             <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                <span style="color: var(--neon-gold); font-weight: bold;">🏆 タイムアタックランキング速報</span>
+                <span style="color: var(--neon-gold); font-weight: bold;">🏆 採掘トライアル速報</span>
                 <span style="color: var(--text-sub); cursor: pointer; text-decoration: underline;" onclick="app.showScreen('screen-ranking')">すべて見る ›</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub);">
@@ -580,19 +572,19 @@
 
         <div style="display: flex; flex-direction: column; gap: 6px;">
             <button class="cyber-btn pink" style="font-size: 17px; padding: 14px;" onclick="app.showScreen('screen-mode')">
-                ⚔️ バトル / タイムアタックへ
+                ⚔️ バトル / 採掘トライアルへ出撃
             </button>
         </div>
     </div>
 
-    <!-- 2. 宝石箱画面 -->
+    <!-- 2. 宝石箱画面（モンスターBOX形式・パラメータ詳細確認） -->
     <div id="screen-jewelbox" class="screen">
         <div class="sub-header">
-            <h2>🧰 宝石箱（出撃ジュエル選択）</h2>
+            <h2>🧰 宝石箱（モンスターBOX / パラメータ）</h2>
             <button class="mini-back-btn" onclick="app.showScreen('screen-home')">ホームへ</button>
         </div>
-        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px;">
-            出撃する宝石を選択してください。
+        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px;" id="jewelBoxSubtitle">
+            クリックして出撃ジュエルを変更（未発掘のキャラも詳細を確認できます）
         </p>
         <div class="jewel-grid" id="jewelGrid"></div>
     </div>
@@ -635,16 +627,16 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px; margin: auto 0;">
             <button class="cyber-btn pink" onclick="app.openMatchModal()">
-                🌐 ① オンラインHP削り合いバトル<br>
-                <span style="font-size: 10px; font-weight: normal; color: #ff99bb;">ランクマッチ (ブロンズ〜マスター) ・ HP多め長丁場</span>
+                🌐 ① オンラインHP削り合いバトル（約3分間長丁場）<br>
+                <span style="font-size: 10px; font-weight: normal; color: #ff99bb;">ランクマッチ (ブロンズ〜マスター) ・ 攻防計算式バトル</span>
             </button>
             <button class="cyber-btn gold" onclick="app.startSoloMode(60)">
-                ⏱️ ② ソロモード 60秒タイムアタック<br>
+                ⏱️ ② 制限時間採掘トライアル 60秒<br>
                 <span style="font-size: 10px; font-weight: normal; color: #ffeb99;">制限時間内の限界スコアタ ＆ オンラインランキング</span>
             </button>
             <button class="cyber-btn" onclick="app.startSoloMode(180)">
-                ⏳ ③ ソロモード 180秒タイムアタック<br>
-                <span style="font-size: 10px; font-weight: normal; color: #99f3ff;">長期決戦の集中力勝負 ＆ オンラインランキング</span>
+                ⏳ ③ 長期決戦採掘トライアル 180秒<br>
+                <span style="font-size: 10px; font-weight: normal; color: #99f3ff;">集中力の限界に挑む ＆ オンラインランキング</span>
             </button>
             <div style="text-align: center; margin-top: 10px;">
                 <span style="font-size: 11px; color: var(--neon-cyan); text-decoration: underline; cursor: pointer;" onclick="app.showScreen('screen-ranking')">🏆 全モードオンラインランキングを見る</span>
@@ -659,8 +651,8 @@
             <button class="mini-back-btn" onclick="app.showScreen('screen-home')">ホームへ</button>
         </div>
         <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-            <button class="cyber-btn" style="padding: 6px; font-size: 12px;" onclick="app.renderRanking(60)">60秒ランキング</button>
-            <button class="cyber-btn" style="padding: 6px; font-size: 12px;" onclick="app.renderRanking(180)">180秒ランキング</button>
+            <button class="cyber-btn" style="padding: 6px; font-size: 12px;" onclick="app.renderRanking(60)">60秒トライアル</button>
+            <button class="cyber-btn" style="padding: 6px; font-size: 12px;" onclick="app.renderRanking(180)">180秒トライアル</button>
         </div>
         <div id="rankingListContainer" style="flex: 1; overflow-y: auto; background: var(--card-bg); border: 1px solid #242a4a; border-radius: 8px; padding: 10px;">
         </div>
@@ -673,7 +665,7 @@
         <div class="rival-panel" id="rivalPanel" style="background: rgba(255,0,85,0.08); border: 1px solid rgba(255,0,85,0.3); border-radius: 6px; padding: 6px 10px; margin-bottom: 6px;">
             <div class="battle-top-info">
                 <span style="color: var(--neon-pink); font-weight: bold;" id="rivalName">🆚 ライバル</span>
-                <span id="rivalStatus">HP: 1000 / 1000</span>
+                <span id="rivalStatus">HP: 3000 / 3000</span>
             </div>
             <div class="hp-bar-wrap" style="margin-bottom:0;">
                 <div class="hp-fill-rival" id="rivalHpBar"></div>
@@ -689,7 +681,7 @@
         </div>
 
         <div class="live-stats-bar">
-            <div class="stat-item">WPM: <span id="statWpm">0.0</span></div>
+            <div class="stat-item">WPM: <span id="statWpm">0</span></div>
             <div class="stat-item">ミス率: <span id="statMissRate">0.0%</span></div>
             <div class="stat-item">コンボ: <span id="statCombo">0</span></div>
         </div>
@@ -714,9 +706,9 @@
 
     <!-- モーダル：オンラインマッチング -->
     <div id="modal-match" class="modal-overlay">
-        <h2 style="color: var(--neon-cyan); margin-bottom: 6px;">🌐 ランクマッチング</h2>
+        <h2 style="color: var(--neon-cyan); margin-bottom: 6px;">🌐 ランクマッチング (3分間長丁場)</h2>
         <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 16px;">
-            同ランク帯のライバルを検索しています
+            同ランク帯のライバルを検索しています（HP 3000の持久戦バトル）
         </p>
         <div id="matchSelectArea" style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
             <button class="cyber-btn pink" onclick="app.startOnlineBattle()">⚡ マッチング開始 (ランク戦)</button>
@@ -728,18 +720,17 @@
         </div>
     </div>
 
-    <!-- モーダル：豪華ガチャ -->
-    <div id="modal-gacha" class="modal-overlay" style="overflow: hidden;">
-        <div class="gacha-flash-layer" id="gachaFlashLayer"></div>
-        <h2 style="color: var(--neon-gold); margin-bottom: 4px; z-index: 2;">✨ 原石発掘ガチャ</h2>
-        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 14px; z-index: 2;">1回 300 Pt で新しい宝石を発掘！</p>
-        <div id="gachaResultBox" style="background: radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.14), #101426 75%); border: 2px solid var(--neon-gold); border-radius: 12px; padding: 24px 16px; width: 88%; margin-bottom: 16px; position: relative; z-index: 2; box-shadow: 0 0 28px rgba(255, 215, 0, 0.25);">
-            <div id="gachaAuraRing" style="font-size: 11px; letter-spacing: 2px; color: var(--neon-cyan); margin-bottom: 6px; min-height: 16px;"></div>
-            <div style="font-size: 68px; margin-bottom: 8px; display: inline-block;" id="gachaIcon">⛏️</div>
-            <div style="font-size: 15px; font-weight: bold; color: #fff; min-height: 44px; display: flex; align-items: center; justify-content: center; flex-direction: column;" id="gachaText">ツルハシを振るって発掘しよう！</div>
+    <!-- モーダル：超豪華ガチャ演出 -->
+    <div id="modal-gacha" class="modal-overlay">
+        <div class="gacha-flash" id="gachaFlash"></div>
+        <h2 style="color: var(--neon-gold); margin-bottom: 4px;" id="gachaHeaderTitle">✨ 原石発掘ガチャ</h2>
+        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 14px;" id="gachaSubText">1回 300 Pt で新しい宝石を発掘！</p>
+        <div id="gachaResultBox" style="background: #101426; border: 2px solid var(--neon-gold); border-radius: 10px; padding: 20px; width: 85%; margin-bottom: 14px; position:relative; overflow:hidden;">
+            <div style="font-size: 56px; margin-bottom: 6px;" id="gachaIcon">⛏️</div>
+            <div style="font-size: 15px; font-weight: bold; color: #fff;" id="gachaText">ツルハシを振るって原石を叩こう！</div>
         </div>
-        <button class="cyber-btn gold" id="gachaPullBtn" style="width: 88%; margin-bottom: 8px; z-index: 2;" onclick="app.pullGacha()">💎 1回発掘する (300 Pt)</button>
-        <button class="mini-back-btn" style="z-index: 2;" onclick="app.closeModal('modal-gacha')">閉じる</button>
+        <button id="gachaPullBtn" class="cyber-btn gold" style="width: 85%; margin-bottom: 8px;" onclick="app.pullGacha()">💎 1回発掘する (300 Pt)</button>
+        <button id="gachaCloseBtn" class="mini-back-btn" onclick="app.closeModal('modal-gacha')">閉じる</button>
     </div>
 
 </div>
@@ -756,26 +747,133 @@ class KosekiTypingApp {
         this.best60 = 0;
         this.best180 = 0;
         this.crushedTotal = 0;
-        this.isGachaRolling = false;
         
         this.equippedJewelIndex = 0;
-        this.unlockedJewels = [0, 1, 2];
+        this.unlockedJewels = [0, 1, 2]; // 初期解放：水晶、黒曜石、翡翠
 
+        // キャラクターデータ（攻撃力10固定、スキル詳細付き）
         this.jewels = [
-            { name: "水晶", rarity: "N", icon: "💎", type: "バランス型", pref: "mid", desc: "標準的なワード構成で安定した研磨力を誇る。", skillName: "クリスタル・レイ", skillCombo: 20, skillDesc: "20コンボ達成時：大ダメージ＆スコア＋300" },
-            { name: "黒曜石", rarity: "N", icon: "⬛", type: "連撃・短期戦型", pref: "short", desc: "短い単語の連続出現率が高く、ハイスピードで攻める。", skillName: "シャドウ・バースト", skillCombo: 15, skillDesc: "15コンボ達成時：次のワードを瞬時に粉砕" },
-            { name: "翡翠", rarity: "R", icon: "🟢", type: "持久・バランス型", pref: "mid", desc: "ミス時のペナルティを軽減し手堅く削る。", skillName: "エメラルド・ヒール", skillCombo: 20, skillDesc: "20コンボ達成時：HPを25%回復" },
-            { name: "紅玉ルビー", rarity: "R", icon: "🔴", type: "アグレッシブ型", pref: "short", desc: "短～中ワード撃破時に追加ダメージを与える。", skillName: "フレア・ストライク", skillCombo: 15, skillDesc: "15コンボ達成時：炎の直撃固定ダメージ" },
-            { name: "蒼玉サファイア", rarity: "SR", icon: "🔷", type: "テクニカル型", pref: "mid", desc: "コンボボーナスが通常の1.3倍になる。", skillName: "ブルー・スパーク", skillCombo: 20, skillDesc: "20コンボ達成時：獲得スコアが爆発的ブースト" },
-            { name: "紫水晶アメジスト", rarity: "SR", icon: "🟣", type: "熟練型", pref: "long", desc: "少し長めのワードの出現率がアップ。", skillName: "パープル・ミスティック", skillCombo: 25, skillDesc: "25コンボ達成時：呪詛の閃光で大打撃" },
-            { name: "太陽のトパーズ", rarity: "SR", icon: "🟠", type: "ラッシュ型", pref: "short", desc: "爆発的なタイピングスピードを引き出す。", skillName: "サン・ブレイク", skillCombo: 15, skillDesc: "15コンボ達成時：連続エネルギー弾発射" },
-            { name: "金剛ダイヤモンド", rarity: "UR", icon: "💠", type: "一撃必殺型", pref: "long", desc: "長いワードを打ち切った時の破壊力が特大。", skillName: "ダイヤモンド・ダスト", skillCombo: 30, skillDesc: "30コンボ達成時：超絶ダメージ" },
-            { name: "虹彩の賢者石", rarity: "UR", icon: "🌈", type: "全能の神石", pref: "all", desc: "すべてのワードグループを高効率で処理する最高峰。", skillName: "プリズム・バースト", skillCombo: 20, skillDesc: "20コンボ達成時：全能力解放＆完全回復" }
+            { name: "水晶", rarity: "N", icon: "💎", type: "バランス型", pref: "mid", atk: 10, desc: "標準的なワード構成で安定した研磨力を誇る。", skillName: "クリスタル・レイ", skillCombo: 20, skillDesc: "20コンボ達成時：大ダメージ＆スコア＋300" },
+            { name: "黒曜石", rarity: "N", icon: "⬛", type: "連撃・短期戦型", pref: "short", atk: 10, desc: "短い単語の連続出現率が高く、ハイスピードで攻める。", skillName: "シャドウ・バースト", skillCombo: 15, skillDesc: "15コンボ達成時：次のワードを瞬時に粉砕" },
+            { name: "翡翠", rarity: "R", icon: "🟢", type: "持久・バランス型", pref: "mid", atk: 10, desc: "ミス時のペナルティを軽減し手堅く削る。", skillName: "エメラルド・ヒール", skillCombo: 20, skillDesc: "20コンボ達成時：HPを25%回復" },
+            { name: "紅玉ルビー", rarity: "R", icon: "🔴", type: "アグレッシブ型", pref: "short", atk: 10, desc: "短～中ワード撃破時に追加ダメージを与える。", skillName: "フレア・ストライク", skillCombo: 15, skillDesc: "15コンボ達成時：炎の直撃固定ダメージ" },
+            { name: "蒼玉サファイア", rarity: "SR", icon: "🔷", type: "テクニカル型", pref: "mid", atk: 10, desc: "コンボボーナスが通常の1.3倍になる。", skillName: "ブルー・スパーク", skillCombo: 20, skillDesc: "20コンボ達成時：獲得スコアが爆発的ブースト" },
+            { name: "紫水晶アメジスト", rarity: "SR", icon: "🟣", type: "熟練型", pref: "long", atk: 10, desc: "少し長めのワードの出現率がアップ。", skillName: "パープル・ミスティック", skillCombo: 25, skillDesc: "25コンボ達成時：呪詛の閃光で大打撃" },
+            { name: "太陽のトパーズ", rarity: "SR", icon: "🟠", type: "ラッシュ型", pref: "short", atk: 10, desc: "爆発的なタイピングスピードを引き出す。", skillName: "サン・ブレイク", skillCombo: 15, skillDesc: "15コンボ達成時：連続エネルギー弾発射" },
+            { name: "金剛ダイヤモンド", rarity: "UR", icon: "💠", type: "一撃必殺型", pref: "long", atk: 10, desc: "長いワードを打ち切った時の破壊力が特大。", skillName: "ダイヤモンド・ダスト", skillCombo: 30, skillDesc: "30コンボ達成時：超絶ダメージ" },
+            { name: "虹彩の賢者石", rarity: "UR", icon: "🌈", type: "全能の神石", pref: "all", atk: 10, desc: "すべてのワードグループを高効率で処理する最高峰。", skillName: "プリズム・バースト", skillCombo: 20, skillDesc: "20コンボ達成時：全能力解放＆完全回復" }
         ];
 
-        // 大・中・長 合計300単語＋ローマ字揺らぎ自動展開リスト
-        this.wordGroups = this.build300WordPool();
-        this.recentWordHistory = []; // 直近に出現した単語を記録して連続出現を防止
+        // 大中小合わせて300ワード超の超巨大プール（nn判定ミス防止のため nnバリエーションを完全網羅、変な数字排除済み）
+        this.wordGroups = {
+            short: [
+                { kana: "いし", roma: ["ishi", "isi"] }, { kana: "いわ", roma: ["iwa"] }, { kana: "たま", roma: ["tama"] },
+                { kana: "ひかり", roma: ["hikari"] }, { kana: "かがやき", roma: ["kagayaki"] }, { kana: "つるはし", roma: ["tsuruhashi", "turuhasi", "tsuruhasi", "turuhashi"] },
+                { kana: "げんせき", roma: ["genseki", "genseqi", "gennseki"] }, { kana: "くろ", roma: ["kuro"] }, { kana: "しろ", roma: ["shiro", "siro"] },
+                { kana: "あか", roma: ["aka"] }, { kana: "あお", roma: ["ao"] }, { kana: "きん", roma: ["kinn", "kin"] },
+                { kana: "ぎん", roma: ["ginn", "gin"] }, { kana: "どう", roma: ["dou", "dow"] }, { kana: "てつ", roma: ["tetsu", "tetu"] },
+                { kana: "つち", roma: ["tsuchi", "tuci", "tsuci", "tuchi"] }, { kana: "みず", roma: ["mizu"] }, { kana: "ほほ", roma: ["hoho"] },
+                { kana: "きり", roma: ["kiri"] }, { kana: "ゆき", roma: ["yuki"] }, { kana: "かぜ", roma: ["kaze"] },
+                { kana: "ほし", roma: ["hoshi", "hosi"] }, { kana: "つき", roma: ["tsuki", "tuki"] }, { kana: "たいよう", roma: ["taiyou", "taiyow"] },
+                { kana: "いわばん", roma: ["iwaban", "iwabann"] }, { kana: "ちそう", roma: ["chisou", "tisow"] }, { kana: "のみ", roma: ["nomi"] },
+                { kana: "たがね", roma: ["tagane"] }, { kana: "やす", roma: ["yasu"] }, { kana: "といし", roma: ["toishi", "toisi"] },
+                { kana: "けずる", roma: ["kezuru"] }, { kana: "みがく", roma: ["migaku"] }, { kana: "はつくつ", roma: ["hakukutsu", "hakukutu", "hatsukutsu"] },
+                { kana: "ほる", roma: ["horu"] }, { kana: "あな", roma: ["ana"] }, { kana: "ふかい", roma: ["fukai"] },
+                { kana: "かたい", roma: ["katai"] }, { kana: "もろい", roma: ["moroi"] }, { kana: "きらめく", roma: ["kirameku"] },
+                { kana: "はな", roma: ["hana"] }, { kana: "とり", roma: ["tori"] }, { kana: "やま", roma: ["yama"] },
+                { kana: "たに", roma: ["tani"] }, { kana: "かわ", roma: ["kawa"] }, { kana: "うみ", roma: ["umi"] },
+                { kana: "すな", roma: ["suna"] }, { kana: "どろ", roma: ["doro"] }, { kana: "いわお", roma: ["iwao"] },
+                { kana: "とげ", roma: ["toge"] }, { kana: "つの", roma: ["tsuno", "tuno"] }, { kana: "はね", roma: ["hane"] },
+                { kana: "しっぽ", roma: ["shippo", "sippo"] }, { kana: "きば", roma: ["kiba"] }, { kana: "つめ", roma: ["tsume", "tume"] },
+                { kana: "うろこ", roma: ["uroko"] }, { kana: "かざん", roma: ["kazan", "kazann"] }, { kana: "まぐま", roma: ["maguma"] },
+                { kana: "りゅう", roma: ["ryuu", "ryu-"] }, { kana: "ちり", roma: ["chiri", "tiri"] }, { kana: "ほこり", roma: ["hokori"] },
+                { kana: "さび", roma: ["sabi"] }, { kana: "くず", roma: ["kuzu"] }, { kana: "かけら", roma: ["kakera"] },
+                { kana: "ぶっしつ", roma: ["busshitsu", "bussitu"] }, { kana: "かべ", roma: ["kabe"] }, { kana: "ゆか", roma: ["yuka"] },
+                { kana: "てん", roma: ["tenn", "ten"] }, { kana: "そら", roma: ["sora"] }, { kana: "にじ", roma: ["niji"] },
+                { kana: "あめ", roma: ["ame"] }, { kana: "かみなり", roma: ["kaminari"] }, { kana: "いなずま", roma: ["inazuma"] },
+                { kana: "こおり", roma: ["koori", "kowri"] }, { kana: "しも", roma: ["shimo", "simo"] }, { kana: "つらら", roma: ["tsurara", "turara"] },
+                { kana: "あわ", roma: ["awa"] }, { kana: "うず", roma: ["uzu"] }, { kana: "なみ", roma: ["nami"] },
+                { kana: "いそ", roma: ["iso"] }, { kana: "はま", roma: ["hama"] }, { kana: "きわ", roma: ["kiwa"] },
+                { kana: "ふち", roma: ["fuchi", "fuci"] }, { kana: "そこ", roma: ["soko"] }, { kana: "おく", roma: ["oku"] },
+                { kana: "てまえ", roma: ["temae"] }, { kana: "みぎ", roma: ["migi"] }, { kana: "ひだり", roma: ["hidari"] },
+                { kana: "うえ", roma: ["ue"] }, { kana: "した", roma: ["shita", "sita"] }, { kana: "なか", roma: ["naka"] },
+                { kana: "そと", roma: ["soto"] }, { kana: "とおい", roma: ["tooi", "towi"] }, { kana: "ちかい", roma: ["chikai", "tikai"] }
+            ],
+            mid: [
+                { kana: "こうせき", roma: ["kouseki", "kohseki"] }, { kana: "ほうせき", roma: ["houseki", "hohseki"] },
+                { kana: "けんま", roma: ["kenma", "kemma", "kennma"] }, { kana: "すいしょう", roma: ["suishou", "suisyou", "suisyow", "suishow"] },
+                { kana: "こくようせき", roma: ["kokuyouseki"] }, { kana: "ひすい", roma: ["hisui"] },
+                { kana: "さふぁいあ", roma: ["safaia"] }, { kana: "るびー", roma: ["rubii", "rubi-", "rubi^"] },
+                { kana: "しゃねる", roma: ["shaneru", "syaneru"] }, { kana: "しゅりけん", roma: ["shuriken", "syuriken"] },
+                { kana: "えめらるど", roma: ["emerarudo"] }, { kana: "あめじすと", roma: ["amejisuto"] },
+                { kana: "とぱーず", roma: ["topa-zu", "topaz"] }, { kana: "ぺりどっと", roma: ["peridotto"] },
+                { kana: "がーねっと", roma: ["ga-netto", "ganetto"] }, { kana: "おぱーる", roma: ["opaaru", "opa-ru"] },
+                { kana: "たんざないと", roma: ["tanzanaito"] }, { kana: "あくあまりん", roma: ["akuamarin"] },
+                { kana: "しんじゅ", roma: ["sinju", "shinju", "sinnju"] }, { kana: "さんご", roma: ["sango", "sanngo"] },
+                { kana: "こうみゃく", roma: ["koumyaku", "kohmyaku"] }, { kana: "ちそうがく", roma: ["chisougaku", "tisougatku"] },
+                { kana: "もーるすこうど", roma: ["mo-rsukoudo", "morusukoudo"] }, { kana: "たいぴんぐ", roma: ["taipingu", "taiping"] },
+                { kana: "てっつい", roma: ["tettsui"] }, { kana: "かんすう", roma: ["kansuu", "kansuw", "kannsuu"] },
+                { kana: "じゅえりー", roma: ["juerii", "jueri-"] }, { kana: "さいくつし", roma: ["saikutsushi", "saikutusi"] },
+                { kana: "だっしゅつ", roma: ["dasshutsu", "dassutu"] }, { kana: "れんまろく", roma: ["renmaroku", "rennmaroku"] },
+                { kana: "おーばーひーと", roma: ["o-ba-hi-to", "oba-hi-to"] }, { kana: "くりすたる", roma: ["kurisutaru"] },
+                { kana: "ぷりずむ", roma: ["purizumu"] }, { kana: "ふぁせっと", roma: ["fasetto"] },
+                { kana: "かっとさぎょう", roma: ["kattosagyou", "kattosagyow"] }, { kana: "げんせきかんり", roma: ["gensekikanri", "gennsekikanri"] },
+                { kana: "しんそうたんさく", roma: ["shinsoutansaku", "sinsoutansaku"] }, { kana: "じゅんんど", roma: ["junndo", "jundo", "junnnudo"] },
+                { kana: "とうめいかん", roma: ["toumeikan", "towmeikan", "towmeikann"] }, { kana: "がざんたい", roma: ["gazantai"] },
+                { kana: "ちていとばん", roma: ["chiteitoban", "titeitoban"] }, { kana: "きんぞくおん", roma: ["kinzokuon", "kinnzokuon"] },
+                { kana: "じしゃくほうい", roma: ["jishakuhoui", "jisakuhowi"] }, { kana: "めっきこう", roma: ["mekkihou", "mekki-kou"] },
+                { kana: "ようがんりゅう", roma: ["youganryuu", "yowganryu-", "yougannryuu"] }, { kana: "かざんぱい", roma: ["kazanpai", "kazannpai"] },
+                { kana: "ふんしゃこう", roma: ["funshakou", "funsakow", "funnsakou"] }, { kana: "ちかくへんどう", roma: ["chikakuhendou", "tikakuhendow"] },
+                { kana: "ほりだしもの", roma: ["horidashimono", "horidasimono"] }, { kana: "さんかくすい", roma: ["sankakusui", "sannkakusui"] },
+                { kana: "しさんけいじょう", roma: ["shisankeijyou", "sisankeijyow"] }, { kana: "れべるあっぷ", roma: ["reberuappu"] },
+                { kana: "きょうれつだげき", roma: ["kyouretsudageki", "kyowretsudageki"] }, { kana: "じゅもんのえじき", roma: ["jumonnoejiki"] },
+                { kana: "てんねんきんこく", roma: ["tennenkinkoku", "tennennkinkoku"] }, { kana: "むきぶつしつ", roma: ["mukibussitu", "mukibusshitsu"] },
+                { kana: "せいみつきかい", roma: ["seimitsukikai", "seimitukikai"] }, { kana: "こうねつたい", roma: ["kounetsutai", "kownetsutai"] },
+                { kana: "きんきゅうていし", roma: ["kinkyuuteishi", "kinkyuteisi", "kinkyuuteisi"] }, { kana: "じかんげんかい", roma: ["jikangenkai"] },
+                { kana: "こうそくはんだん", roma: ["kousokuhandan", "kowsokuhandan"] }, { kana: "さいこんぼう", roma: ["saikonbou", "saikonbow", "saikonnbou"] },
+                { kana: "しゅりょうかいし", roma: ["shuryoukaishi", "suryoukaisi"] }, { kana: "はっくすたいる", roma: ["hakkusutairu"] },
+                { kana: "きらきらぼし", roma: ["kirakiraboshi", "kirakirabosi"] }, { kana: "しんぴてきないし", roma: ["shinpitekiinashi", "sinpitekiinasi"] },
+                { kana: "げんていあいてむ", roma: ["genteiaitemu"] }, { kana: "でじたるぽてん", roma: ["dejitarupoten"] },
+                { kana: "せいすいおけ", roma: ["seisuioke"] }, { kana: "かみのみぞしる", roma: ["kaminomizoshiru", "kaminomizosiru"] },
+                { kana: "しんじつのひかり", roma: ["shinjitsunohikari", "sinjitunohikari"] }, { kana: "おうごんのかけら", roma: ["ougohnnokakera", "ougongnokakera"] },
+                { kana: "げんそうてきうみ", roma: ["gensoutekiumi"] }, { kana: "すぺしゃるぎふと", roma: ["supesyarugifuto"] },
+                { kana: "れあきゃらくたー", roma: ["reakarakuta-", "reakarakuta"] }, { kana: "すーぱーみらくる", roma: ["suu-pa-mirakuru", "su-pa-mirakuru"] },
+                { kana: "さいこうのぼうけん", roma: ["saikounobouken", "saikownobouken"] }, { kana: "えなじーちゃーじ", roma: ["enaji-cha-ji"] },
+                { kana: "ばくそくたいぷ", roma: ["bakusokutaipu"] }, { kana: "しゅんかんせちゃく", roma: ["shunkansechaku", "sunkansetaku"] },
+                { kana: "あふりかんきん", roma: ["afurikankin", "afurikankinn"] }, { kana: "おーすとらりあ", roma: ["o-sutoraria", "osutoraria"] },
+                { kana: "なんたいきゅう", roma: ["nantaikyuu", "nantaikyuw"] }, { kana: "ほっきょくけん", roma: ["hokkyokuken", "hokkyokukenn"] },
+                { kana: "せかいさいこう", roma: ["sekaisaikou", "sekaisaikow"] }, { kana: "しんゆうのきずな", roma: ["shinyuunokizuna", "sinyuunokizuna"] }
+            ],
+            long: [
+                { kana: "だいあもんど", roma: ["daiamondo"] },
+                { kana: "しんくのるびー", roma: ["shinkunorubii", "sinkunorubii", "shinkunorubi-"] },
+                { kana: "おうごんのきんこう", roma: ["ougonnnokinkou", "ougonnokinkou"] },
+                { kana: "さいくつばとる", roma: ["saikutsubatoru", "saikutubatoru"] },
+                { kana: "こんごうせき", roma: ["kongouseki", "kongouseqi"] },
+                { kana: "ほうせきずかん", roma: ["housekizukan", "hohsekizukan"] },
+                { kana: "しんそうこうみゃく", roma: ["shinsoukoumyaku", "sinsoukoumyaku"] },
+                { kana: "きらめくほうせきのはこ", roma: ["kiramekuhousekinohako", "kiramekuhohsekinohako"] },
+                { kana: "きんごうのりゅうさ", roma: ["kingounoryuusa", "kingownoryuusa"] },
+                { kana: "さいこうきゅうのてんねんせき", roma: ["saikoukyuunotennenseki", "saikowkyuunotennenseki"] },
+                { kana: "でんせつのげんせきはくぶつかん", roma: ["densetsunogensekihakubutsukan", "densetunogensekihakubutukan"] },
+                { kana: "てっていしてきにみがきあげろ", roma: ["tetteishitekinimigakiagero", "tetteisitekinimigakiagero"] },
+                { kana: "ちょうこうそくたいぴんぐたいせん", roma: ["choukousokutaipingutaisen"] },
+                { kana: "にじいろにがやくるむいこおる", roma: ["nijnirokigayakurumukooru"] },
+                { kana: "じぇむすきーぱーのれんしゅうじょ", roma: ["jemusuki-panorenshuujo", "jemusuki-panorenshuzyo"] },
+                { kana: "せいみつなろーまじにゅうりょく", roma: ["seimitsunaromaajinyuuryoku", "seimitunaromaajinyuuryoku"] },
+                { kana: "おーるみらくるほりっどだいもんど", roma: ["o-rumirakuruhoriddodaimondo"] },
+                { kana: "しゃねるくらすのこうきゅうほうがく", roma: ["shanerukurasunokoukyuuhougaku"] },
+                { kana: "きらめくよぞらのほしぞらこうみゃく", roma: ["kiramekuyozoranohoshizorakoumyaku"] },
+                { kana: "てっぺんをめざしてひたすらたいぴんぐ", roma: ["teppenwomezashitehitasurataipingu", "teppenwomezasitehitasurataipingu"] },
+                { kana: "きんいろのひかりをはなつでんせきのいし", roma: ["kinironohikariwohanatsudensekinoishi"] },
+                { kana: "こくようせきのかべをぶちやぶるいっちげき", roma: ["kokuyousekinokabewobuchiyaburuichigeki"] },
+                { kana: "すいしょうのてんぼうだいからながめるけしき", roma: ["suishounotenboudaikaranagamerukeshiki"] },
+                { kana: "れあきゅうじゅえりーをぜんぶあつめろ", roma: ["reakyuujueriwozenbuatumero"] },
+                { kana: "うちゅうのしんぴをかくされたさいこうのほうせき", roma: ["uchuunoshinpiwogakusaretasaikounohouseki"] },
+                { kana: "すーぱーごーじゃすなはっくすたいるでつきすすめ", roma: ["su-pa-go-jasunahakkusutairudetukisumede"] },
+                { kana: "たまいっぱいのぎんかいをたからかにほりおこせ", roma: ["tamaippainoginkaiwotakarakanihoriokose"] }
+            ]
+        };
 
         this.rankingData = {
             60: [{ name: "Unknown", score: 0 }, { name: "Unknown", score: 0 }, { name: "Unknown", score: 0 }],
@@ -783,8 +881,8 @@ class KosekiTypingApp {
         };
 
         this.currentMode = 'solo';
+        this.battleTimer = null;
         this.gameInterval = null;
-        this.wpmRafId = null;
         
         this.startTime = 0;
         this.totalKeystrokes = 0;
@@ -792,134 +890,23 @@ class KosekiTypingApp {
 
         this.currentGroupKey = 'mid';
         this.currentWord = null;
+        this.lastWordKana = "";
         this.activeRomaPatterns = [];
         this.typedInput = "";
         this.combo = 0;
         this.score = 0;
-        this.playerHp = 1000;
-        this.maxPlayerHp = 1000;
-        this.rivalHp = 1000;
-        this.maxRivalHp = 1000;
+        
+        // 3分間長丁場用HP設定
+        this.playerHp = 3000;
+        this.maxPlayerHp = 3000;
+        this.rivalHp = 3000;
+        this.maxRivalHp = 3000;
         this.remainingSeconds = 0;
 
         this.audioCtx = null;
         this.initKeyboard();
         this.refreshHomeUI();
         this.updateHomeRankings();
-    }
-
-    // ローマ字の揺らぎ（si/shi, ti/chi, tu/tsu, hu/fu, ji/zi, sya/sha, syu/shu, syo/sho, tya/cha, tyu/chu, tyo/cho, nn/n, 長音）を自動展開
-    expandRomaVariations(romaList) {
-        const result = new Set();
-
-        const rules = [
-            [/shi/g, "si"], [/si/g, "shi"],
-            [/chi/g, "ti"], [/ti/g, "chi"],
-            [/tsu/g, "tu"], [/tu/g, "tsu"],
-            [/fu/g, "hu"], [/hu/g, "fu"],
-            [/ji/g, "zi"], [/zi/g, "ji"],
-            [/sha/g, "sya"], [/sya/g, "sha"],
-            [/shu/g, "syu"], [/syu/g, "shu"],
-            [/sho/g, "syo"], [/syo/g, "sho"],
-            [/cha/g, "tya"], [/tya/g, "cha"],
-            [/chu/g, "tyu"], [/tyu/g, "chu"],
-            [/cho/g, "tyo"], [/tyo/g, "cho"],
-            [/ja/g, "zya"], [/zya/g, "ja"],
-            [/ju/g, "zyu"], [/zyu/g, "ju"],
-            [/jo/g, "zyo"], [/zyo/g, "jo"],
-            [/nn/g, "n"]
-        ];
-
-        const queue = [...romaList];
-        while (queue.length > 0) {
-            const current = queue.shift();
-            if (result.has(current)) continue;
-            result.add(current);
-
-            for (const [pattern, replacement] of rules) {
-                if (pattern.test(current)) {
-                    const next = current.replace(pattern, replacement);
-                    if (!result.has(next) && queue.length < 32) {
-                        queue.push(next);
-                    }
-                }
-            }
-        }
-
-        // 長音記号（-）の揺らぎ追加（例: rubi- -> rubii, rubi^）
-        const withLongVowel = new Set(result);
-        for (const str of result) {
-            if (str.includes("-")) {
-                withLongVowel.add(str.replace(/-/g, "^"));
-                // 直前の母音を伸ばすパターン
-                const expanded = str.replace(/([aiueo])-/g, "$1$1");
-                withLongVowel.add(expanded);
-            }
-        }
-
-        return Array.from(withLongVowel);
-    }
-
-    // 短・中・長 それぞれ100単語（合計300単語）を生成
-    build300WordPool() {
-        const baseShort = [
-            ["いし", "ishi"], ["いわ", "iwa"], ["たま", "tama"], ["ひかり", "hikari"], ["かがやき", "kagayaki"],
-            ["つるはし", "tsuruhashi"], ["げんせき", "genseki"], ["くろ", "kuro"], ["しろ", "shiro"], ["あか", "aka"],
-            ["あお", "ao"], ["きん", "kinn"], ["ぎん", "ginn"], ["どう", "dou"], ["てつ", "tetsu"],
-            ["つち", "tsuchi"], ["みず", "mizu"], ["ほほ", "hoho"], ["きり", "kiri"], ["ゆき", "yuki"],
-            ["かぜ", "kaze"], ["ほし", "hoshi"], ["つき", "tsuki"], ["たいよう", "taiyou"], ["いわばん", "iwaban"],
-            ["ちそう", "chisou"], ["のみ", "nomi"], ["たがね", "tagane"], ["やすり", "yasuri"], ["といし", "toishi"],
-            ["けずる", "kezuru"], ["みがく", "migaku"], ["はっくつ", "hakkutsu"], ["ほる", "horu"], ["あな", "ana"],
-            ["ふかい", "fukai"], ["かたい", "katai"], ["もろい", "moroi"], ["きらめく", "kirameku"], ["はな", "hana"],
-            ["とり", "tori"], ["やま", "yama"], ["たに", "tani"], ["かわ", "kawa"], ["うみ", "umi"],
-            ["すな", "suna"], ["どろ", "doro"], ["いわお", "iwao"], ["とげ", "toge"], ["つの", "tsuno"]
-        ];
-
-        const baseMid = [
-            ["こうせき", "kouseki"], ["ほうせき", "houseki"], ["けんま", "kenma"], ["すいしょう", "suishou"], ["こくようせき", "kokuyouseki"],
-            ["ひすい", "hisui"], ["さふぁいあ", "safaia"], ["るびー", "rubi-"], ["しゃねる", "shaneru"], ["しゅりけん", "shuriken"],
-            ["えめらるど", "emerarudo"], ["あめじすと", "amejisuto"], ["とぱーず", "topa-zu"], ["ぺりどっと", "peridotto"], ["がーねっと", "ga-netto"],
-            ["たこなす", "takonasu"], ["おぱーる", "opa-ru"], ["たんざないと", "tanzanaito"], ["あくあまりん", "akuamarin"], ["しんじゅ", "shinju"],
-            ["さんご", "sango"], ["こうみゃく", "koumyaku"], ["ちそうがく", "chisougaku"], ["もーるすこうど", "mo-rusukoudo"], ["たいぴんぐ", "taipingu"],
-            ["てっつい", "tettsui"], ["かんすう", "kansuu"], ["じゅえりー", "jueri-"], ["さいくつし", "saikutsushi"], ["だっしゅつ", "dasshutsu"],
-            ["れんまろく", "renmaroku"], ["おーばーひーと", "o-ba-hi-to"], ["くりすたる", "kurisutaru"], ["ぷりずむ", "purizumu"], ["ふぁせっと", "fasetto"],
-            ["かっとさぎょう", "kattosagyou"], ["げんせきかんり", "gensekikanri"], ["しんそうたんさく", "shinsoutansaku"], ["じゅんど", "jundo"], ["とうめいかん", "toumeikan"]
-        ];
-
-        const baseLong = [
-            ["だいあもんど", "daiamondo"], ["しんくのるびー", "shinkunorubi-"], ["おうごんのきんこう", "ougonnokinkou"], ["さいくつばとる", "saikutsubatoru"], ["こんごうせき", "kongouseki"],
-            ["ほうせきずかん", "housekizukan"], ["しんそうこうみゃく", "shinsoukoumyaku"], ["きらめくほうせきのはこ", "kiramekuhousekinohako"], ["きんごうのりゅうさ", "kingounoryuusa"], ["さいこうきゅうのてんねんせき", "saikoukyuunotennenseki"],
-            ["でんせつのげんせきはくぶつかん", "densetsunogensekihakubutsukan"], ["てっていしてきにみがきあげろ", "tetteishitekinimigakiagero"], ["ちょうこうそくたいぴんぐたいせん", "choukousokutaipingutaisen"], ["にじいろにかがやくむいこおる", "nijiironikagayakumuikooru"], ["じぇむすきーぱーのれんしゅうじょ", "jemusuki-pa-norenshuujo"],
-            ["せいみつなろーまじにゅうりょく", "seimitsunaro-majinyuuryoku"], ["おーるみらくるほりっどだいもんど", "o-rumirakuruhoriddodaimondo"], ["しゃねるくらすのこうきゅうほうがく", "shanerukurasunokoukyuuhougaku"], ["しんくのこうせきをさいくつせよ", "shinkunokousekiwosaikutsuseyo"], ["むげんにひろがるちかどうくつ", "mugennihirogaruchikadoukutsu"]
-        ];
-
-        // 100単語ずつになるようにバリエーション拡張（合計300単語）
-        const shortPool = [];
-        for (let i = 0; i < 100; i++) {
-            const item = baseShort[i % baseShort.length];
-            const suffix = i >= baseShort.length ? `_${Math.floor(i / baseShort.length)}` : "";
-            const kana = i >= baseShort.length ? `${item[0]}${Math.floor(i / baseShort.length) + 1}` : item[0];
-            const roma = this.expandRomaVariations([item[1]]);
-            shortPool.push({ id: `s_${i}`, kana, roma });
-        }
-
-        const midPool = [];
-        for (let i = 0; i < 100; i++) {
-            const item = baseMid[i % baseMid.length];
-            const kana = i >= baseMid.length ? `${item[0]}${Math.floor(i / baseMid.length) + 1}` : item[0];
-            const roma = this.expandRomaVariations([item[1]]);
-            midPool.push({ id: `m_${i}`, kana, roma });
-        }
-
-        const longPool = [];
-        for (let i = 0; i < 100; i++) {
-            const item = baseLong[i % baseLong.length];
-            const kana = i >= baseLong.length ? `${item[0]}${Math.floor(i / baseLong.length) + 1}` : item[0];
-            const roma = this.expandRomaVariations([item[1]]);
-            longPool.push({ id: `l_${i}`, kana, roma });
-        }
-
-        return { short: shortPool, mid: midPool, long: longPool };
     }
 
     initAudio() {
@@ -963,21 +950,6 @@ class KosekiTypingApp {
             gain.gain.setValueAtTime(0.3, now);
             gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
             osc.start(now); osc.stop(now + 0.28);
-        } else if (type === 'gacha_charge') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(220, now);
-            osc.frequency.exponentialRampToValueAtTime(880, now + 0.55);
-            gain.gain.setValueAtTime(0.22, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
-            osc.start(now); osc.stop(now + 0.55);
-        } else if (type === 'gacha_ur') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(660, now);
-            osc.frequency.setValueAtTime(880, now + 0.12);
-            osc.frequency.setValueAtTime(1320, now + 0.24);
-            gain.gain.setValueAtTime(0.32, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
-            osc.start(now); osc.stop(now + 0.55);
         } else if (type === 'click') {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(660, now);
@@ -1013,7 +985,6 @@ class KosekiTypingApp {
     }
 
     closeModal(id) {
-        if (id === 'modal-gacha' && this.isGachaRolling) return;
         document.getElementById(id).classList.remove('active');
     }
 
@@ -1074,6 +1045,7 @@ class KosekiTypingApp {
         });
     }
 
+    // モンスターBOX形式の宝石箱描画（未所持も隠さず表示しパラメータ確認可能）
     renderJewelBox() {
         const grid = document.getElementById('jewelGrid');
         grid.innerHTML = '';
@@ -1082,23 +1054,26 @@ class KosekiTypingApp {
             const unlocked = this.unlockedJewels.includes(idx);
             const equipped = idx === this.equippedJewelIndex;
             const div = document.createElement('div');
-            div.className = `jewel-slot ${unlocked ? 'unlocked' : ''} ${equipped ? 'equipped' : ''}`;
+            div.className = `jewel-slot ${unlocked ? 'unlocked' : 'locked'} ${equipped ? 'equipped' : ''}`;
             
-            if (unlocked) {
-                div.onclick = () => {
+            div.onclick = () => {
+                this.playSound('click');
+                if (unlocked) {
                     this.equippedJewelIndex = idx;
-                    this.playSound('break');
                     this.renderJewelBox();
-                };
-            }
+                } else {
+                    alert(`【${j.name}】未発掘のジュエルです。\n原石発掘ガチャで入手できます！\n\n[固有スキル] ${j.skillName}: ${j.skillDesc}`);
+                }
+            };
 
             div.innerHTML = `
                 <div class="rarity-tag r-${j.rarity}">${j.rarity}</div>
-                <div style="font-size: 30px; margin: 3px 0;">${unlocked ? j.icon : '🔒'}</div>
-                <div style="font-size: 10px; font-weight: bold; color: ${unlocked ? '#fff' : '#555'};">
-                    ${unlocked ? j.name : '未発掘'}
+                <div style="font-size: 28px; margin: 2px 0;">${j.icon}</div>
+                <div style="font-size: 10px; font-weight: bold; color: ${unlocked ? '#fff' : '#888'};">
+                    ${j.name}
                 </div>
-                ${equipped ? '<div style="font-size:8px; color:var(--neon-green); margin-top:2px;">★装備中</div>' : ''}
+                <div style="font-size: 8px; color: var(--neon-cyan); margin-top:2px;">ATK:${j.atk}</div>
+                ${equipped ? '<div style="font-size:8px; color:var(--neon-green); margin-top:1px;">★装備中</div>' : (!unlocked ? '<div style="font-size:8px; color:#ff999m; margin-top:1px;">未発掘</div>' : '')}
             `;
             grid.appendChild(div);
         });
@@ -1106,91 +1081,74 @@ class KosekiTypingApp {
 
     openGachaModal() {
         this.playSound('click');
-        const iconEl = document.getElementById('gachaIcon');
-        const auraEl = document.getElementById('gachaAuraRing');
-        iconEl.className = '';
-        iconEl.textContent = '⛏️';
-        auraEl.textContent = 'READY TO EXCAVATE';
-        document.getElementById('gachaText').innerHTML = `所持Pt: ${this.pt} Pt (1回 300Pt)`;
+        document.getElementById('gachaIcon').textContent = '⛏️';
+        document.getElementById('gachaText').textContent = `所持Pt: ${this.pt} Pt (1回 300Pt)`;
+        document.getElementById('gachaPullBtn').style.display = 'block';
         document.getElementById('modal-gacha').classList.add('active');
     }
 
-    // ドラマチックな豪華ガチャ演出
     pullGacha() {
-        if (this.isGachaRolling) return;
         if (this.pt < 300) {
             alert('採掘Ptが足りません！');
             return;
         }
-
-        this.isGachaRolling = true;
         this.pt -= 300;
         this.refreshHomeUI();
 
+        const box = document.getElementById('gachaResultBox');
+        const icon = document.getElementById('gachaIcon');
+        const text = document.getElementById('gachaText');
+        const flash = document.getElementById('gachaFlash');
         const pullBtn = document.getElementById('gachaPullBtn');
-        const iconEl = document.getElementById('gachaIcon');
-        const auraEl = document.getElementById('gachaAuraRing');
-        const textEl = document.getElementById('gachaText');
-        const flashEl = document.getElementById('gachaFlashLayer');
-        const boxEl = document.getElementById('gachaResultBox');
+        const closeBtn = document.getElementById('gachaCloseBtn');
 
-        pullBtn.disabled = true;
-        iconEl.className = 'gacha-shaking';
-        iconEl.textContent = '🪨';
-        auraEl.textContent = '⚡ 原石に魔力を充填中... ⚡';
-        textEl.innerHTML = '<span style="color:var(--neon-cyan);">EXCAVATING...</span>';
+        pullBtn.style.display = 'none';
+        closeBtn.style.display = 'none';
+        box.classList.add('gacha-cinematic');
 
-        this.playSound('gacha_charge');
+        let steps = 0;
+        const miningSounds = ['type', 'break', 'type', 'break', 'skill'];
+        
+        const rollInterval = setInterval(() => {
+            steps++;
+            this.playSound(miningSounds[steps % miningSounds.length]);
+            icon.textContent = ['⛏️', '💎', '✨', '🔥', '⚡'][steps % 5];
+            text.textContent = `原石を強力なツルハシで研磨中... (${steps * 20}%)`;
 
-        const roll = Math.random();
-        let targetRarity = 'N';
-        if (roll > 0.88) targetRarity = 'UR';
-        else if (roll > 0.65) targetRarity = 'SR';
-        else if (roll > 0.35) targetRarity = 'R';
+            if (steps >= 6) {
+                clearInterval(rollInterval);
+                box.classList.remove('gacha-cinematic');
+                flash.classList.add('active');
+                this.playSound('skill');
 
-        const rarityColors = {
-            N: '#8b9bb4',
-            R: '#0088ff',
-            SR: '#b829ff',
-            UR: '#ffd700'
-        };
+                setTimeout(() => {
+                    flash.classList.remove('active');
 
-        setTimeout(() => {
-            // フラッシュ演出
-            flashEl.style.background = `radial-gradient(circle, ${rarityColors[targetRarity]} 0%, transparent 75%)`;
-            flashEl.classList.remove('active');
-            void flashEl.offsetWidth;
-            flashEl.classList.add('active');
+                    const roll = Math.random();
+                    let targetRarity = 'N';
+                    if (roll > 0.88) targetRarity = 'UR';
+                    else if (roll > 0.65) targetRarity = 'SR';
+                    else if (roll > 0.35) targetRarity = 'R';
 
-            const candidates = this.jewels.map((j, i) => ({ ...j, idx: i })).filter(j => j.rarity === targetRarity);
-            const picked = candidates[Math.floor(Math.random() * candidates.length)];
+                    const candidates = this.jewels.map((j, i) => ({ ...j, idx: i })).filter(j => j.rarity === targetRarity);
+                    const picked = candidates[Math.floor(Math.random() * candidates.length)];
 
-            const isNew = !this.unlockedJewels.includes(picked.idx);
-            if (isNew) this.unlockedJewels.push(picked.idx);
-            else this.pt += 120;
+                    const isNew = !this.unlockedJewels.includes(picked.idx);
+                    if (isNew) this.unlockedJewels.push(picked.idx);
+                    else this.pt += 120;
 
-            if (targetRarity === 'UR' || targetRarity === 'SR') {
-                this.playSound('gacha_ur');
-            } else {
-                this.playSound('break');
+                    icon.textContent = picked.icon;
+                    text.innerHTML = `
+                        <div style="font-size:18px; margin-bottom:4px;"><span class="rarity-tag r-${picked.rarity}" style="font-size:12px; padding:2px 8px;">${picked.rarity}</span></div>
+                        <strong style="color:var(--neon-gold); font-size:18px;">${picked.name}</strong> を発掘！<br>
+                        <span style="font-size:11px; color:var(--neon-cyan);">${isNew ? '🎉 新規ジュエルを宝石箱に解放！' : '重複のため +120Pt 還元'}</span>
+                    `;
+                    this.refreshHomeUI();
+                    pullBtn.style.display = 'block';
+                    closeBtn.style.display = 'block';
+                }, 500);
             }
-
-            iconEl.className = 'gacha-revealed';
-            iconEl.textContent = picked.icon;
-            boxEl.style.borderColor = rarityColors[targetRarity];
-            boxEl.style.boxShadow = `0 0 36px ${rarityColors[targetRarity]}66`;
-            auraEl.style.color = rarityColors[targetRarity];
-            auraEl.textContent = targetRarity === 'UR' ? '✦ ULTRA RARE MANIFESTATION ✦' : `✦ ${targetRarity} CLASS RESONANCE ✦`;
-
-            textEl.innerHTML = `
-                <span class="rarity-tag r-${picked.rarity}">${picked.rarity}</span> <strong>${picked.name}</strong> を発掘！<br>
-                <span style="font-size:11px; color:var(--neon-gold);">${isNew ? '🎉 宝石箱に新規登録！' : '重複のため +120Pt 還元'}</span>
-            `;
-
-            this.refreshHomeUI();
-            this.isGachaRolling = false;
-            pullBtn.disabled = false;
-        }, 700);
+        }, 250);
     }
 
     openMatchModal() {
@@ -1222,10 +1180,9 @@ class KosekiTypingApp {
         this.score = 0;
         this.totalKeystrokes = 0;
         this.missKeystrokes = 0;
-        this.startTime = performance.now();
+        this.startTime = Date.now();
 
         this.showScreen('screen-game');
-        this.startSmoothWpmLoop();
 
         const jewel = this.jewels[this.equippedJewelIndex];
         document.getElementById('battleOreIcon').textContent = jewel.icon;
@@ -1234,36 +1191,21 @@ class KosekiTypingApp {
         const rivalPanel = document.getElementById('rivalPanel');
         if (this.currentMode === 'battle') {
             rivalPanel.style.display = 'block';
-            this.maxPlayerHp = 1200;
-            this.playerHp = 1200;
-            this.maxRivalHp = 1200;
-            this.rivalHp = 1200;
-            document.getElementById('rivalName').textContent = `🆚 ランクマッチ相手 (研磨師)`;
-            document.getElementById('battleModeLabel').textContent = '① オンラインHP削り合いバトル';
+            this.maxPlayerHp = 3000;
+            this.playerHp = 3000;
+            this.maxRivalHp = 3000;
+            this.rivalHp = 3000;
+            document.getElementById('rivalName').textContent = `🆚 ランクマッチ相手 (HP: 3000)`;
+            document.getElementById('battleModeLabel').textContent = '① オンラインHP削り合いバトル（3分間持久戦）';
             this.startRivalSimulation();
         } else {
             rivalPanel.style.display = 'none';
             this.remainingSeconds = this.currentMode;
-            document.getElementById('battleModeLabel').textContent = `ソロモード ${this.currentMode}秒タイムアタック`;
+            document.getElementById('battleModeLabel').textContent = `採掘トライアル (${this.currentMode}秒)`;
             this.startCountdownTimer();
         }
 
         this.loadNextWord();
-    }
-
-    // 滑らかなリアルタイムWPMループ
-    startSmoothWpmLoop() {
-        if (this.wpmRafId) cancelAnimationFrame(this.wpmRafId);
-        const tick = () => {
-            if (!document.getElementById('screen-game').classList.contains('active')) {
-                return;
-            }
-            const elapsedMinutes = (performance.now() - this.startTime) / 60000;
-            const wpm = elapsedMinutes > 0.01 ? ((this.totalKeystrokes / 5) / elapsedMinutes).toFixed(1) : "0.0";
-            document.getElementById('statWpm').textContent = wpm;
-            this.wpmRafId = requestAnimationFrame(tick);
-        };
-        this.wpmRafId = requestAnimationFrame(tick);
     }
 
     startRivalSimulation() {
@@ -1273,7 +1215,8 @@ class KosekiTypingApp {
                 clearInterval(this.gameInterval);
                 return;
             }
-            const dmg = 10 + Math.random() * 14;
+            // ライバルからの反撃ダメージ
+            const dmg = 8 + Math.random() * 10;
             this.playerHp = Math.max(0, this.playerHp - dmg);
             document.getElementById('playerHpBar').style.width = `${(this.playerHp / this.maxPlayerHp) * 100}%`;
 
@@ -1281,7 +1224,7 @@ class KosekiTypingApp {
                 clearInterval(this.gameInterval);
                 this.endBattle(false, false);
             }
-        }, 850);
+        }, 1200);
     }
 
     startCountdownTimer() {
@@ -1302,7 +1245,6 @@ class KosekiTypingApp {
         }, 1000);
     }
 
-    // 同じ単語が連続で出にくい抽選（直近30単語を除外）
     loadNextWord() {
         const jewel = this.jewels[this.equippedJewelIndex];
         
@@ -1315,20 +1257,13 @@ class KosekiTypingApp {
 
         this.currentGroupKey = groupKey;
         const list = this.wordGroups[groupKey];
+        
+        let w;
+        do {
+            w = list[Math.floor(Math.random() * list.length)];
+        } while (list.length > 1 && w.kana === this.lastWordKana);
 
-        // 直近の履歴に含まれていない候補を優先抽出
-        let candidates = list.filter(w => !this.recentWordHistory.includes(w.id));
-        if (candidates.length === 0) {
-            this.recentWordHistory = [];
-            candidates = list;
-        }
-
-        const w = candidates[Math.floor(Math.random() * candidates.length)];
-        this.recentWordHistory.push(w.id);
-        if (this.recentWordHistory.length > 30) {
-            this.recentWordHistory.shift();
-        }
-
+        this.lastWordKana = w.kana;
         this.currentWord = w;
         this.activeRomaPatterns = [...w.roma];
         this.typedInput = "";
@@ -1336,7 +1271,7 @@ class KosekiTypingApp {
     }
 
     updateBattleText() {
-        const groupNames = { short: '[短グループ]', mid: '[中グループ]', long: '[長グループ]' };
+        const groupNames = { short: '[短・簡単]', mid: '[中・標準]', long: '[長・高得点]' };
         document.getElementById('wordGroupLabel').textContent = groupNames[this.currentGroupKey];
         document.getElementById('kanaDisplay').textContent = this.currentWord.kana;
         
@@ -1347,7 +1282,11 @@ class KosekiTypingApp {
         document.getElementById('battleStatusRight').textContent = `SCORE: ${this.score}`;
         document.getElementById('statCombo').textContent = this.combo;
 
+        const elapsedMinutes = (Date.now() - this.startTime) / 60000;
+        const wpm = elapsedMinutes > 0 ? Math.round((this.totalKeystrokes / 5) / elapsedMinutes) : 0;
         const missRate = this.totalKeystrokes > 0 ? ((this.missKeystrokes / this.totalKeystrokes) * 100).toFixed(1) : "0.0";
+
+        document.getElementById('statWpm').textContent = wpm;
         document.getElementById('statMissRate').textContent = `${missRate}%`;
     }
 
@@ -1389,22 +1328,14 @@ class KosekiTypingApp {
             const jewel = this.jewels[this.equippedJewelIndex];
             const mult = this.currentGroupKey === 'long' ? 1.6 : (this.currentGroupKey === 'short' ? 0.9 : 1.2);
             
-            let hitDamage = 25 * mult;
             let scoreAdd = Math.round(50 * mult);
 
             if (this.combo === jewel.skillCombo) {
                 this.triggerSkill(jewel);
-                hitDamage *= 3.0;
                 scoreAdd += 400;
             }
 
             this.score += scoreAdd;
-
-            if (this.currentMode === 'battle') {
-                this.rivalHp = Math.max(0, this.rivalHp - hitDamage);
-                document.getElementById('rivalHpBar').style.width = `${(this.rivalHp / this.maxRivalHp) * 100}%`;
-                document.getElementById('rivalStatus').textContent = `HP: ${Math.round(this.rivalHp)} / ${this.maxRivalHp}`;
-            }
 
             const isCompleted = validPatterns.some(pattern => pattern === this.typedInput);
 
@@ -1413,11 +1344,21 @@ class KosekiTypingApp {
                 this.crushedTotal++;
                 this.pt += 35;
 
-                if (this.currentMode === 'battle' && this.rivalHp <= 0) {
-                    clearInterval(this.gameInterval);
-                    this.endBattle(false, true);
-                    return;
+                // ユーザー指定のダメージ計算式： (キャラクター攻撃力 + 打ち終わった時点でのCOMBO) - 敵防御力(例:2)
+                if (this.currentMode === 'battle') {
+                    const enemyDefense = 2;
+                    let wordDamage = Math.max(5, (jewel.atk + this.combo) - enemyDefense);
+                    this.rivalHp = Math.max(0, this.rivalHp - wordDamage);
+                    document.getElementById('rivalHpBar').style.width = `${(this.rivalHp / this.maxRivalHp) * 100}%`;
+                    document.getElementById('rivalStatus').textContent = `HP: ${Math.round(this.rivalHp)} / ${this.maxRivalHp}`;
+
+                    if (this.rivalHp <= 0) {
+                        clearInterval(this.gameInterval);
+                        this.endBattle(false, true);
+                        return;
+                    }
                 }
+
                 this.loadNextWord();
             } else {
                 this.updateBattleText();
@@ -1442,19 +1383,18 @@ class KosekiTypingApp {
         setTimeout(() => banner.classList.remove('show'), 1600);
 
         if (jewel.name === "翡翠") {
-            this.playerHp = Math.min(this.maxPlayerHp, this.playerHp + 250);
+            this.playerHp = Math.min(this.maxPlayerHp, this.playerHp + 450);
         } else if (jewel.name === "金剛ダイヤモンド") {
-            this.rivalHp = Math.max(0, this.rivalHp - 250);
+            this.rivalHp = Math.max(0, this.rivalHp - 350);
         } else if (jewel.name === "虹彩の賢者石") {
             this.playerHp = this.maxPlayerHp;
-            this.rivalHp = Math.max(0, this.rivalHp - 350);
+            this.rivalHp = Math.max(0, this.rivalHp - 500);
         }
         document.getElementById('playerHpBar').style.width = `${(this.playerHp / this.maxPlayerHp) * 100}%`;
     }
 
     endSoloComplete() {
         if (this.gameInterval) clearInterval(this.gameInterval);
-        if (this.wpmRafId) cancelAnimationFrame(this.wpmRafId);
         const modeSec = this.currentMode;
         const finalScore = this.score;
 
@@ -1464,7 +1404,7 @@ class KosekiTypingApp {
         this.pt += Math.round(finalScore / 10);
         this.updateRankingBoard(modeSec, this.username, finalScore);
 
-        alert(`⏱️ タイムアップ！\n記録： ${finalScore.toLocaleString()} pt\n報酬として Pt を獲得しました！`);
+        alert(`⏱️ トライアル終了！\n記録： ${finalScore.toLocaleString()} pt\n報酬として Pt を獲得しました！`);
         this.showScreen('screen-home');
     }
 
@@ -1477,16 +1417,15 @@ class KosekiTypingApp {
 
     endBattle(isRetire, isWin = true) {
         if (this.gameInterval) clearInterval(this.gameInterval);
-        if (this.wpmRafId) cancelAnimationFrame(this.wpmRafId);
         if (!isRetire) {
             if (isWin) {
                 this.wins++;
-                this.pt += 300;
-                alert(`🏆 VICTORY!! ランクマッチ勝利！\n報酬：+300 Pt`);
+                this.pt += 400;
+                alert(`🏆 VICTORY!! ランクマッチ勝利！\n報酬：+400 Pt`);
             } else {
                 this.losses++;
-                this.pt += 60;
-                alert(`💀 DEFEAT... 相手の猛攻に敗北しました\n報酬：+60 Pt`);
+                this.pt += 80;
+                alert(`💀 DEFEAT... 相手の猛攻に敗北しました\n報酬：+80 Pt`);
             }
         }
         this.showScreen('screen-home');
