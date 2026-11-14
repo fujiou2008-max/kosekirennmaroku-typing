@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピング対戦 鉱石錬磨録 - KOSEKI RENMAROKU</title>
+    <style>
+        :root {
+            --bg-dark: #05060a;
+            --panel-bg: rgba(12, 15, 30, 0.94);
+            --card-bg: #14182e;
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff0055;
+            --neon-gold: #ffd700;
+            --neon-green: #00ff66;
+            --neon-purple: #b829ff;
+            --text-main: #ffffff;
+            --text-sub: #8b9bb4;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #020204;
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(0, 243, 255, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(255, 0, 85, 0.08) 0%, transparent 45%);
+            color: var(--text-main);
+            font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            max-height: 880px;
+            background: var(--bg-dark);
+            border-left: 2px solid rgba(0, 243, 255, 0.4);
+            border-right: 2px solid rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 16px;
+            position: relative;
+            z-index: 1;
+            overflow-y: auto;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        .cyber-btn {
+            position: relative;
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(0, 243, 255, 0.03));
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            cursor: pointer;
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+            transition: all 0.15s ease;
+            text-align: center;
+            width: 100%;
+            box-shadow: inset 0 0 12px rgba(0, 243, 255, 0.2);
+        }
+        .cyber-btn:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-cyan);
+            transform: translateY(-1px);
+        }
+        .cyber-btn:active { transform: scale(0.98); }
+
+        .cyber-btn.pink {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(255, 0, 85, 0.05));
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+            box-shadow: inset 0 0 12px rgba(255, 0, 85, 0.2);
+        }
+        .cyber-btn.pink:hover {
+            background: var(--neon-pink);
+            color: #fff;
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        .cyber-btn.gold {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.05));
+            color: var(--neon-gold);
+            border-color: var(--neon-gold);
+            box-shadow: inset 0 0 12px rgba(255, 215, 0, 0.2);
+        }
+        .cyber-btn.gold:hover {
+            background: var(--neon-gold);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-gold);
+        }
+
+        /* タイトル画面 */
+        .title-hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .title-badge {
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-size: 11px;
+            padding: 3px 14px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+        .title-logo {
+            font-size: 34px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #fff, var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6));
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+
+        /* ホーム画面 */
+        .home-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .currency-pill {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--neon-gold);
+            color: var(--neon-gold);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .news-ticker {
+            background: rgba(0, 243, 255, 0.1);
+            border-left: 3px solid var(--neon-cyan);
+            padding: 5px 10px;
+            font-size: 11px;
+            color: #99f3ff;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .home-stage {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 88px;
+            gap: 10px;
+            margin-bottom: 12px;
+            min-height: 0;
+        }
+
+        .jewel-showcase {
+            position: relative;
+            background: radial-gradient(circle at 50% 45%, rgba(255, 215, 0, 0.15), rgba(12, 15, 30, 0.92) 70%);
+            border: 1px solid rgba(255, 215, 0, 0.35);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px;
+            overflow: hidden;
+        }
+        .jewel-type-tag {
+            align-self: flex-start;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--neon-gold);
+            color: var(--neon-gold);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .jewel-avatar-big {
+            font-size: 95px;
+            filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.5));
+            animation: floatJewel 3s ease-in-out infinite;
+            margin: 5px 0;
+        }
+        @keyframes floatJewel {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.03); }
+        }
+        .jewel-info-panel {
+            width: 100%;
+            background: rgba(5, 6, 10, 0.85);
+            border: 1px solid #2c3252;
+            border-radius: 8px;
+            padding: 8px;
+        }
+
+        .side-dock {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .dock-btn {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid #303659;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 6px;
+            text-align: center;
+        }
+        .dock-btn:hover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 243, 255, 0.1);
+            transform: scale(1.03);
+        }
+        .dock-btn.gold-border { border-color: rgba(255, 215, 0, 0.5); }
+        .dock-btn.pink-border { border-color: rgba(255, 0, 85, 0.5); }
+        .dock-icon { font-size: 24px; margin-bottom: 3px; }
+        .dock-label { font-size: 11px; font-weight: bold; color: #fff; }
+
+        .sub-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2b3052;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+        .sub-header h2 { font-size: 18px; color: var(--neon-cyan); }
+        .mini-back-btn {
+            background: #1d213b;
+            color: #fff;
+            border: 1px solid #444c7a;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .mini-back-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+
+        .jewel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .jewel-slot {
+            background: var(--card-bg);
+            border: 1px solid #303659;
+            border-radius: 10px;
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .jewel-slot.unlocked { border-color: rgba(255, 215, 0, 0.5); }
+        .jewel-slot.equipped {
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.3);
+        }
+        .rarity-tag {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1px 5px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        .r-N { background: #555; color: #fff; }
+        .r-R { background: #0088ff; color: #fff; }
+        .r-SR { background: #b829ff; color: #fff; }
+        .r-UR { background: linear-gradient(90deg, #ff0055, #ffd700); color: #fff; }
+
+        /* バトル画面 */
+        .rival-panel {
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid rgba(255, 0, 85, 0.4);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }
+        .rival-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .hp-bar-wrap {
+            width: 100%;
+            height: 10px;
+            background: #111;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+        .hp-fill-rival {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #ff0055, #ff6600);
+            transition: width 0.2s;
+        }
+        .hp-fill-player {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #00f3ff, #00ff66);
+            transition: width 0.1s;
+        }
+
+        /* スキルゲージUI */
+        .skill-gauge-box {
+            background: #101426;
+            border: 1px solid var(--neon-gold);
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .skill-name-tag {
+            font-size: 12px;
+            color: var(--neon-gold);
+            font-weight: bold;
+        }
+        .skill-status {
+            font-size: 11px;
+            color: var(--text-sub);
+        }
+        .skill-status.ready {
+            color: var(--neon-green);
+            animation: pulseReady 0.8s infinite alternate;
+        }
+        @keyframes pulseReady {
+            0% { opacity: 0.6; text-shadow: none; }
+            100% { opacity: 1; text-shadow: 0 0 8px var(--neon-green); }
+        }
+
+        .battle-arena {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .ore-target {
+            font-size: 88px;
+            filter: drop-shadow(0 0 22px rgba(0, 243, 255, 0.5));
+            transition: transform 0.08s;
+        }
+        .ore-target.shake {
+            animation: oreShake 0.12s ease;
+        }
+        @keyframes oreShake {
+            0% { transform: translate(0, 0) scale(1); }
+            30% { transform: translate(-7px, 4px) scale(0.94); }
+            60% { transform: translate(7px, -4px) scale(1.04); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        .word-card {
+            width: 100%;
+            background: rgba(12, 15, 30, 0.95);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 10px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+        }
+        .word-kana {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+            letter-spacing: 2px;
+        }
+        .word-roma {
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .typed-char { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+        .miss-flash { animation: missFlash 0.2s; }
+        @keyframes missFlash {
+            0%, 100% { border-color: var(--neon-cyan); }
+            50% { border-color: var(--neon-pink); background: rgba(255,0,85,0.2); }
+        }
+
+        /* モーダル */
+        .modal-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 5, 12, 0.92);
+            z-index: 50;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            text-align: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .room-input {
+            background: #14182e;
+            border: 1px solid var(--neon-cyan);
+            color: #fff;
+            padding: 12px;
+            font-size: 18px;
+            text-align: center;
+            border-radius: 6px;
+            width: 80%;
+            margin: 12px 0;
+            letter-spacing: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="bg-grid"></div>
+
+    <!-- 0. タイトル画面 -->
+    <div id="screen-title" class="screen active">
+        <div class="title-hero">
+            <div class="title-badge">KEYBOARD TYPING BATTLE</div>
+            <div class="title-logo">タイピング対戦<br>鉱石錬磨録</div>
+            <div style="color: var(--text-sub); font-size: 13px; letter-spacing: 2px; margin-bottom: 40px;">
+                KOSEKI RENMAROKU TYPING
+            </div>
+            <div style="width: 85%;">
+                <button class="cyber-btn" onclick="app.enterHome()">▶ プレスしてスタート</button>
+            </div>
+            <div style="margin-top: 20px; font-size: 11px; color: var(--text-sub);">
+                PCキーボード専用タイピング対戦ゲーム
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. ホーム画面 -->
+    <div id="screen-home" class="screen">
+        <div class="home-top-bar">
+            <div style="font-size: 13px; font-weight: bold; color: var(--neon-cyan);">⚔️ 鉱石タイピングリーグ</div>
+            <div class="currency-pill">💎 <span id="homePt">1,500</span> Pt</div>
+        </div>
+
+        <div class="news-ticker">
+            ⚡ 【必殺スキル実装】一定コンボ達成で宝石の固有スキルが自動発動！大ダメージを叩き込め！
+        </div>
+
+        <div class="home-stage">
+            <div class="jewel-showcase">
+                <div class="jewel-type-tag" id="homeJewelType">得意：バランス型</div>
+                <div class="jewel-avatar-big" id="homeJewelIcon">💎</div>
+                <div class="jewel-info-panel">
+                    <div style="font-weight: 900; font-size: 14px; color: var(--neon-gold); margin-bottom: 2px;" id="homeJewelName">水晶 (Crystal)</div>
+                    <div style="font-size: 10px; color: var(--neon-cyan); margin-bottom: 2px;" id="homeSkillTitle">スキル：クリスタル・レイ (20コンボ)</div>
+                    <div style="font-size: 10px; color: var(--text-sub);" id="homeJewelDesc">標準的なワード構成で安定した研磨力を誇る。</div>
+                </div>
+            </div>
+
+            <div class="side-dock">
+                <div class="dock-btn gold-border" onclick="app.showScreen('screen-jewelbox')">
+                    <div class="dock-icon">🧰</div>
+                    <div class="dock-label" style="color: var(--neon-gold);">宝石箱</div>
+                </div>
+                <div class="dock-btn pink-border" onclick="app.openGachaModal()">
+                    <div class="dock-icon">🎰</div>
+                    <div class="dock-label" style="color: var(--neon-pink);">原石ガチャ</div>
+                </div>
+                <div class="dock-btn" onclick="app.showScreen('screen-mypage')">
+                    <div class="dock-icon">🪪</div>
+                    <div class="dock-label">戦績</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button class="cyber-btn pink" style="font-size: 19px; padding: 16px;" onclick="app.showScreen('screen-mode')">
+                ⚔️ タイピング対戦 / ソロ出撃
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. 宝石箱画面 -->
+    <div id="screen-jewelbox" class="screen">
+        <div class="sub-header">
+            <h2>🧰 宝石箱（出撃する宝石の選択）</h2>
+            <button class="mini-back-btn" onclick="app.showScreen('screen-home')">ホームへ</button>
+        </div>
+        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">
+            宝石ごとに得意なワードの長さと、コンボ発動の「必殺スキル」が異なります。
+        </p>
+        <div class="jewel-grid" id="jewelGrid"></div>
+    </div>
+
+    <!-- 3. 戦績画面 -->
+    <div id="screen-mypage" class="screen">
+        <div class="sub-header">
+            <h2>🪪 タイピング戦績</h2>
+            <button class="mini-back-btn" onclick="app.showScreen('screen-home')">ホームへ</button>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid #303659; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+            <div style="font-size: 18px; font-weight: bold; color: var(--neon-cyan); margin-bottom: 8px;">研磨師ランク：ゴールド</div>
+            <div style="font-size: 13px; color: var(--text-sub); line-height: 2;">
+                <div>・タイピングレート：<span style="color:#fff; font-weight:bold;">1,540</span></div>
+                <div>・総粉砕鉱石数：<span style="color:var(--neon-gold); font-weight:bold;" id="statCrushed">42 個</span></div>
+                <div>・最大ノーミスコンボ：<span style="color:var(--neon-green); font-weight:bold;" id="statMaxCombo">38 打鍵</span></div>
+            </div>
+        </div>
+        <button class="cyber-btn" onclick="app.testSound()">🔊 打鍵サウンドテスト</button>
+    </div>
+
+    <!-- 4. モード選択画面 -->
+    <div id="screen-mode" class="screen">
+        <div class="sub-header">
+            <h2>⚔️ バトルモード選択</h2>
+            <button class="mini-back-btn" onclick="app.showScreen('screen-home')">ホームへ</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin: auto 0;">
+            <button class="cyber-btn pink" onclick="app.openMatchModal('battle')">
+                🌐 オンライン対戦：モードA（破砕バトル）
+            </button>
+            <button class="cyber-btn gold" onclick="app.openMatchModal('race')">
+                🌐 オンライン対戦：モードB（掘削レース）
+            </button>
+            <button class="cyber-btn" onclick="app.openMatchModal('rush')">
+                🌐 オンライン対戦：モードC（採掘ラッシュ）
+            </button>
+            <div style="border-top: 1px dashed #333; margin: 6px 0;"></div>
+            <button class="cyber-btn" style="border-color: var(--neon-green); color: var(--neon-green);" onclick="app.startBattle('solo', false)">
+                🏔️ ソロ探索（深層鉱脈・練習モード）
+            </button>
+        </div>
+    </div>
+
+    <!-- 5. バトル・プレイ画面 -->
+    <div id="screen-game" class="screen">
+        <div class="rival-panel" id="rivalPanel">
+            <div class="rival-top">
+                <span style="color: var(--neon-pink); font-weight: bold;" id="rivalName">🆚 ライバル宝石</span>
+                <span id="rivalStatus">打鍵速度: 5.2打/秒</span>
+            </div>
+            <div class="hp-bar-wrap">
+                <div class="hp-fill-rival" id="rivalHpBar"></div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin-bottom: 4px;">
+            <span id="battleModeLabel">モードA：破砕バトル</span>
+            <span>COMBO: <strong style="color: var(--neon-green);" id="comboCount">0</strong> | SCORE: <strong style="color: #fff;" id="battleScore">0</strong></span>
+        </div>
+        <div class="hp-bar-wrap" style="margin-bottom: 8px;">
+            <div class="hp-fill-player" id="playerHpBar"></div>
+        </div>
+
+        <!-- スキル発動ゲージ・ステータスバー -->
+        <div class="skill-gauge-box">
+            <div>
+                <div class="skill-name-tag" id="battleSkillName">⚡ 必殺: クリスタル・レイ</div>
+                <div style="font-size: 10px; color: var(--text-sub);" id="battleSkillDesc">20コンボで発動</div>
+            </div>
+            <div class="skill-status" id="skillStatusText">蓄積中 (0/20)</div>
+        </div>
+
+        <div class="battle-arena">
+            <div class="ore-target" id="battleOreIcon">💎</div>
+            <div style="font-size: 13px; color: var(--neon-gold); margin-top: 6px;" id="battleOreLabel">セット中の宝石</div>
+        </div>
+
+        <div class="word-card" id="wordCard">
+            <div style="font-size: 10px; color: var(--neon-cyan); margin-bottom: 4px;" id="wordGroupLabel">[中グループ]</div>
+            <div class="word-kana" id="kanaDisplay">こうせき</div>
+            <div class="word-roma">
+                <span class="typed-char" id="romaTyped"></span><span style="color: var(--text-sub);" id="romaRem">kouseki</span>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 6px;">
+            <span style="font-size: 12px; color: var(--text-sub); text-decoration: underline; cursor: pointer;" onclick="app.endBattle(true)">対戦を中断する</span>
+        </div>
+    </div>
+
+    <!-- モーダル：オンラインマッチング -->
+    <div id="modal-match" class="modal-overlay">
+        <h2 style="color: var(--neon-cyan); margin-bottom: 8px;">🌐 オンラインマッチング</h2>
+        <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 20px;">
+            タイピング対戦のライバルを検索しています
+        </p>
+        <div id="matchSelectArea" style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+            <button class="cyber-btn pink" onclick="app.searchOpponent('RANDOM')">⚡ ランダムマッチ</button>
+            <div style="background: #14182e; padding: 12px; border-radius: 8px; border: 1px solid #303659;">
+                <div style="font-size: 12px; color: var(--text-sub);">フレンド対戦（4桁の合言葉）</div>
+                <input type="text" id="roomCodeInput" class="room-input" maxlength="4" placeholder="1234" value="7777">
+                <button class="cyber-btn" onclick="app.searchOpponent('ROOM')">🔑 ルーム入室</button>
+            </div>
+            <button class="mini-back-btn" style="margin-top: 10px;" onclick="app.closeModal('modal-match')">キャンセル</button>
+        </div>
+        <div id="matchSearchingArea" style="display: none; flex-direction: column; align-items: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">📡</div>
+            <div style="color: var(--neon-gold); font-weight: bold; font-size: 16px;" id="searchingText">対戦相手を検索中...</div>
+        </div>
+    </div>
+
+    <!-- モーダル：ガチャ -->
+    <div id="modal-gacha" class="modal-overlay">
+        <h2 style="color: var(--neon-gold); margin-bottom: 6px;">✨ 原石発掘ガチャ</h2>
+        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">1回 300 Pt で新しい宝石を発掘！</p>
+        <div id="gachaResultBox" style="background: #14182e; border: 2px solid var(--neon-gold); border-radius: 12px; padding: 24px; width: 85%; margin-bottom: 20px;">
+            <div style="font-size: 64px; margin-bottom: 8px;" id="gachaIcon">⛏️</div>
+            <div style="font-size: 16px; font-weight: bold; color: #fff;" id="gachaText">ツルハシを振るって発掘しよう！</div>
+        </div>
+        <button class="cyber-btn gold" style="width: 85%; margin-bottom: 10px;" onclick="app.pullGacha()">💎 1回発掘する (300 Pt)</button>
+        <button class="mini-back-btn" onclick="app.closeModal('modal-gacha')">閉じる</button>
+    </div>
+
+</div>
+
+<script>
+class KosekiTypingApp {
+    constructor() {
+        this.pt = 1500;
+        this.crushedTotal = 42;
+        this.maxComboRecord = 38;
+        this.equippedJewelIndex = 0;
+        this.unlockedJewels = [0, 1, 2];
+
+        // 宝石データ（必殺スキル設定付き）
+        this.jewels = [
+            { 
+                name: "水晶", rarity: "N", icon: "💎", type: "バランス型", pref: "mid", 
+                desc: "標準的なワード構成で安定した研磨力を誇る。",
+                skillName: "クリスタル・レイ", skillCombo: 20, skillDesc: "20コンボ達成時：相手のHPに大ダメージ＆スコア＋300"
+            },
+            { 
+                name: "黒曜石", rarity: "N", icon: "⬛", type: "連撃・短期戦型", pref: "short", 
+                desc: "短い単語の連続出現率が高く、ハイスピードで攻める。",
+                skillName: "シャドウ・バースト", skillCombo: 15, skillDesc: "15コンボ達成時：次のワードを瞬時に粉砕する強力な一撃"
+            },
+            { 
+                name: "翡翠", rarity: "R", icon: "🟢", type: "持久・バランス型", pref: "mid", 
+                desc: "ミス時のペナルティを軽減し手堅く削る。",
+                skillName: "エメラルド・ヒール", skillCombo: 20, skillDesc: "20コンボ達成時：自分のHPを25回復する"
+            },
+            { 
+                name: "紅玉ルビー", rarity: "R", icon: "🔴", type: "アグレッシブ型", pref: "short", 
+                desc: "短～中ワードの撃破時に追加ダメージを与える。",
+                skillName: "フレア・ストライク", skillCombo: 15, skillDesc: "15コンボ達成時：相手HPを直撃する炎の固定ダメージ"
+            },
+            { 
+                name: "蒼玉サファイア", rarity: "SR", icon: "🔷", type: "テクニカル型", pref: "mid", 
+                desc: "コンボボーナスが通常の1.3倍になる。",
+                skillName: "ブルー・スパーク", skillCombo: 20, skillDesc: "20コンボ達成時：獲得スコアが爆発的にブースト"
+            },
+            { 
+                name: "紫水晶アメジスト", rarity: "SR", icon: "🟣", type: "熟練型", pref: "long", 
+                desc: "少し長めのワードの出現率がアップ。",
+                skillName: "パープル・ミスティック", skillCombo: 25, skillDesc: "25コンボ達成時：相手に大打撃を与える呪詛の閃光"
+            },
+            { 
+                name: "太陽のトパーズ", rarity: "SR", icon: "🟠", type: "ラッシュ型", pref: "short", 
+                desc: "爆発的なタイピングスピードを引き出す。",
+                skillName: "サン・ブレイク", skillCombo: 15, skillDesc: "15コンボ達成時：連続エネルギー弾で相手HPを削る"
+            },
+            { 
+                name: "金剛ダイヤモンド", rarity: "UR", icon: "💠", type: "一撃必殺型", pref: "long", 
+                desc: "長いワードを打ち切った時の破壊力が特大。",
+                skillName: "ダイヤモンド・ダスト", skillCombo: 30, skillDesc: "30コンボ達成時：画面を凍てつかせる超絶ダメージ"
+            },
+            { 
+                name: "虹彩の賢者石", rarity: "UR", icon: "🌈", type: "全能の神石", pref: "all", 
+                desc: "すべてのワードグループを高効率で処理する最高峰の宝石。",
+                skillName: "プリズム・バースト", skillCombo: 20, skillDesc: "20コンボ達成時：全能力を解放して超大ダメージ＆全回復"
+            }
+        ];
+
+        this.wordGroups = {
+            short: [
+                { kana: "いし", roma: ["ishi"] },
+                { kana: "いわ", roma: ["iwa"] },
+                { kana: "たま", roma: ["tama"] },
+                { kana: "ひかり", roma: ["hikari"] },
+                { kana: "かがやき", roma: ["kagayaki"] },
+                { kana: "つるはし", roma: ["tsuruhashi", "turuhasi"] },
+                { kana: "げんせき", roma: ["genseki"] }
+            ],
+            mid: [
+                { kana: "こうせき", roma: ["kouseki", "kohseki"] },
+                { kana: "ほうせき", roma: ["houseki", "hohseki"] },
+                { kana: "けんま", roma: ["kenma"] },
+                { kana: "すいしょう", roma: ["suishou", "suisyou"] },
+                { kana: "こくようせき", roma: ["kokuyouseki"] },
+                { kana: "ひすい", roma: ["hisui"] },
+                { kana: "さふぁいあ", roma: ["safaia"] },
+                { kana: "るびー", roma: ["rubii"] }
+            ],
+            long: [
+                { kana: "だいあもんど", roma: ["daiamondo"] },
+                { kana: "しんくのるびー", roma: ["shinkunorubii", "sinkunorubii"] },
+                { kana: "おうごんのきんこう", roma: ["ougonnnokinkou", "ougonnokinkou"] },
+                { kana: "さいくつばとる", roma: ["saikutsubatoru", "saikutubatoru"] },
+                { kana: "こんごうせき", roma: ["kongouseki"] },
+                { kana: "ほうせきずかん", roma: ["housekizukan", "hohsekizukan"] }
+            ]
+        };
+
+        this.currentMode = 'solo';
+        this.isOnline = false;
+        this.battleTimer = null;
+
+        this.currentGroupKey = 'mid';
+        this.currentWord = null;
+        this.activeRoma = "";
+        this.charIdx = 0;
+        this.combo = 0;
+        this.score = 0;
+        this.playerHp = 100;
+        this.rivalHp = 100;
+
+        this.audioCtx = null;
+        this.initKeyboard();
+        this.refreshHomeUI();
+    }
+
+    initAudio() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+    }
+
+    playSound(type) {
+        this.initAudio();
+        const now = this.audioCtx.currentTime;
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        if (type === 'type') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(540 + (this.combo * 10), now);
+            osc.frequency.exponentialRampToValueAtTime(150, now + 0.045);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.045);
+            osc.start(now); osc.stop(now + 0.045);
+        } else if (type === 'miss') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(110, now);
+            osc.frequency.linearRampToValueAtTime(75, now + 0.12);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.start(now); osc.stop(now + 0.12);
+        } else if (type === 'break') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(1760, now + 0.18);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+            osc.start(now); osc.stop(now + 0.28);
+        } else if (type === 'skill') {
+            // スキル発動時の派手な高音
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(1320, now + 0.3);
+            gain.gain.setValueAtTime(0.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+            osc.start(now); osc.stop(now + 0.35);
+        } else if (type === 'click') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(660, now);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+            osc.start(now); osc.stop(now + 0.04);
+        }
+    }
+
+    testSound() {
+        this.playSound('type');
+        setTimeout(() => this.playSound('break'), 150);
+    }
+
+    enterHome() {
+        this.playSound('click');
+        this.showScreen('screen-home');
+    }
+
+    showScreen(id) {
+        this.playSound('click');
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+
+        if (id === 'screen-home') this.refreshHomeUI();
+        if (id === 'screen-jewelbox') this.renderJewelBox();
+        if (id === 'screen-mypage') {
+            document.getElementById('statCrushed').textContent = `${this.crushedTotal} 個`;
+            document.getElementById('statMaxCombo').textContent = `${this.maxComboRecord} 打鍵`;
+        }
+    }
+
+    closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    refreshHomeUI() {
+        const jewel = this.jewels[this.equippedJewelIndex];
+        document.getElementById('homePt').textContent = this.pt.toLocaleString();
+        document.getElementById('homeJewelType').textContent = `得意：${jewel.type}`;
+        document.getElementById('homeJewelIcon').textContent = jewel.icon;
+        document.getElementById('homeJewelName').textContent = `${jewel.name} (${jewel.rarity})`;
+        document.getElementById('homeSkillTitle').textContent = `スキル：${jewel.skillName} (${jewel.skillCombo}コンボ)`;
+        document.getElementById('homeJewelDesc').textContent = jewel.desc;
+    }
+
+    renderJewelBox() {
+        const grid = document.getElementById('jewelGrid');
+        grid.innerHTML = '';
+
+        this.jewels.forEach((j, idx) => {
+            const unlocked = this.unlockedJewels.includes(idx);
+            const equipped = idx === this.equippedJewelIndex;
+            const div = document.createElement('div');
+            div.className = `jewel-slot ${unlocked ? 'unlocked' : ''} ${equipped ? 'equipped' : ''}`;
+            
+            if (unlocked) {
+                div.onclick = () => {
+                    this.equippedJewelIndex = idx;
+                    this.playSound('break');
+                    this.renderJewelBox();
+                };
+            }
+
+            div.innerHTML = `
+                <div class="rarity-tag r-${j.rarity}">${j.rarity}</div>
+                <div style="font-size: 32px; margin: 4px 0;">${unlocked ? j.icon : '🔒'}</div>
+                <div style="font-size: 11px; font-weight: bold; color: ${unlocked ? '#fff' : '#666'};">
+                    ${unlocked ? j.name : '未発掘'}
+                </div>
+                ${equipped ? '<div style="font-size:9px; color:var(--neon-green); margin-top:2px;">★装備中</div>' : ''}
+            `;
+            grid.appendChild(div);
+        });
+    }
+
+    openGachaModal() {
+        this.playSound('click');
+        document.getElementById('gachaIcon').textContent = '⛏️';
+        document.getElementById('gachaText').textContent = `所持Pt: ${this.pt} Pt (1回 300Pt)`;
+        document.getElementById('modal-gacha').classList.add('active');
+    }
+
+    pullGacha() {
+        if (this.pt < 300) {
+            alert('採掘Ptが足りません！');
+            return;
+        }
+        this.pt -= 300;
+        this.playSound('break');
+
+        const roll = Math.random();
+        let targetRarity = 'N';
+        if (roll > 0.90) targetRarity = 'UR';
+        else if (roll > 0.70) targetRarity = 'SR';
+        else if (roll > 0.40) targetRarity = 'R';
+
+        const candidates = this.jewels.map((j, i) => ({ ...j, idx: i })).filter(j => j.rarity === targetRarity);
+        const picked = candidates[Math.floor(Math.random() * candidates.length)];
+
+        const isNew = !this.unlockedJewels.includes(picked.idx);
+        if (isNew) this.unlockedJewels.push(picked.idx);
+        else this.pt += 100;
+
+        document.getElementById('gachaIcon').textContent = picked.icon;
+        document.getElementById('gachaText').innerHTML = `
+            <span class="rarity-tag r-${picked.rarity}">${picked.rarity}</span> <strong>${picked.name}</strong> を発掘！<br>
+            <span style="font-size:12px; color:var(--neon-gold);">${isNew ? '🎉 宝石箱に新規登録！' : '重複のため +100Pt 還元'}</span>
+        `;
+        this.refreshHomeUI();
+    }
+
+    openMatchModal(mode) {
+        this.currentMode = mode;
+        this.playSound('click');
+        document.getElementById('matchSelectArea').style.display = 'flex';
+        document.getElementById('matchSearchingArea').style.display = 'none';
+        document.getElementById('modal-match').classList.add('active');
+    }
+
+    searchOpponent(type) {
+        this.playSound('click');
+        document.getElementById('matchSelectArea').style.display = 'none';
+        document.getElementById('matchSearchingArea').style.display = 'flex';
+        document.getElementById('searchingText').textContent = type === 'RANDOM' ? 'ライバルを検索中...' : 'ルームに接続中...';
+
+        setTimeout(() => {
+            this.closeModal('modal-match');
+            this.startBattle(this.currentMode, true);
+        }, 1300);
+    }
+
+    startBattle(mode, isOnline) {
+        this.currentMode = mode;
+        this.isOnline = isOnline;
+        this.combo = 0;
+        this.score = 0;
+        this.playerHp = 100;
+        this.rivalHp = 100;
+
+        this.showScreen('screen-game');
+
+        const jewel = this.jewels[this.equippedJewelIndex];
+        document.getElementById('battleOreIcon').textContent = jewel.icon;
+        document.getElementById('battleOreLabel').textContent = `出撃宝石：${jewel.name} (${jewel.type})`;
+        
+        // スキル表示の更新
+        document.getElementById('battleSkillName').textContent = `⚡ 必殺: ${jewel.skillName}`;
+        document.getElementById('battleSkillDesc').textContent = jewel.skillDesc;
+
+        const rivalPanel = document.getElementById('rivalPanel');
+        if (isOnline) {
+            rivalPanel.style.display = 'block';
+            document.getElementById('rivalName').textContent = `🆚 相手の宝石 (Lv.10)`;
+            this.startRivalSimulation();
+        } else {
+            rivalPanel.style.display = 'none';
+        }
+
+        const modeTitles = { solo: '🏔️ ソロ探索', battle: '⚔️ モードA：破砕バトル', race: '🏁 モードB：掘削レース', rush: '⚡ モードC：採掘ラッシュ' };
+        document.getElementById('battleModeLabel').textContent = modeTitles[mode];
+        this.updateSkillGauge();
+        this.loadNextWord();
+    }
+
+    startRivalSimulation() {
+        if (this.battleTimer) clearInterval(this.battleTimer);
+        this.battleTimer = setInterval(() => {
+            if (!document.getElementById('screen-game').classList.contains('active')) {
+                clearInterval(this.battleTimer);
+                return;
+            }
+            const dmg = Math.random() * 2.0;
+            this.playerHp = Math.max(0, this.playerHp - dmg);
+            document.getElementById('playerHpBar').style.width = `${this.playerHp}%`;
+
+            if (this.playerHp <= 0) this.endBattle(false, false);
+        }, 750);
+    }
+
+    loadNextWord() {
+        const jewel = this.jewels[this.equippedJewelIndex];
+        
+        let groupKey = 'mid';
+        const rand = Math.random();
+        if (jewel.pref === 'short') {
+            groupKey = rand < 0.6 ? 'short' : (rand < 0.9 ? 'mid' : 'long');
+        } else if (jewel.pref === 'long') {
+            groupKey = rand < 0.6 ? 'long' : (rand < 0.9 ? 'mid' : 'short');
+        } else if (jewel.pref === 'all') {
+            groupKey = rand < 0.34 ? 'short' : (rand < 0.67 ? 'mid' : 'long');
+        } else {
+            groupKey = rand < 0.2 ? 'short' : (rand < 0.8 ? 'mid' : 'long');
+        }
+
+        this.currentGroupKey = groupKey;
+        const list = this.wordGroups[groupKey];
+        const w = list[Math.floor(Math.random() * list.length)];
+
+        this.currentWord = w;
+        this.activeRoma = w.roma[0];
+        this.charIdx = 0;
+        this.updateBattleText();
+    }
+
+    updateBattleText() {
+        const groupNames = { short: '[短グループ]', mid: '[中グループ]', long: '[長グループ]' };
+        document.getElementById('wordGroupLabel').textContent = groupNames[this.currentGroupKey];
+        document.getElementById('kanaDisplay').textContent = this.currentWord.kana;
+        document.getElementById('romaTyped').textContent = this.activeRoma.substring(0, this.charIdx);
+        document.getElementById('romaRem').textContent = this.activeRoma.substring(this.charIdx);
+        document.getElementById('comboCount').textContent = this.combo;
+        document.getElementById('battleScore').textContent = this.score;
+        document.getElementById('rivalHpBar').style.width = `${this.rivalHp}%`;
+        this.updateSkillGauge();
+    }
+
+    updateSkillGauge() {
+        const jewel = this.jewels[this.equippedJewelIndex];
+        const targetCombo = jewel.skillCombo;
+        const statusEl = document.getElementById('skillStatusText');
+
+        if (this.combo >= targetCombo) {
+            statusEl.textContent = "⚡ 発動可能！次の打撃で爆発！";
+            statusEl.className = "skill-status ready";
+        } else {
+            statusEl.textContent = `蓄積中 (${this.combo}/${targetCombo})`;
+            statusEl.className = "skill-status";
+        }
+    }
+
+    initKeyboard() {
+        window.addEventListener('keydown', (e) => {
+            if (!document.getElementById('screen-game').classList.contains('active')) return;
+            if (e.key.length !== 1) return;
+            this.processChar(e.key.toLowerCase());
+        });
+    }
+
+    processChar(inputChar) {
+        const expected = this.activeRoma[this.charIdx];
+
+        if (inputChar !== expected) {
+            const prefix = this.activeRoma.substring(0, this.charIdx) + inputChar;
+            const altMatch = this.currentWord.roma.find(r => r.startsWith(prefix));
+            if (altMatch) this.activeRoma = altMatch;
+        }
+
+        if (inputChar === this.activeRoma[this.charIdx]) {
+            this.charIdx++;
+            this.combo++;
+            if (this.combo > this.maxComboRecord) this.maxComboRecord = this.combo;
+            this.playSound('type');
+
+            const oreEl = document.getElementById('battleOreIcon');
+            oreEl.classList.remove('shake');
+            void oreEl.offsetWidth;
+            oreEl.classList.add('shake');
+
+            const jewel = this.jewels[this.equippedJewelIndex];
+            const mult = this.currentGroupKey === 'long' ? 1.5 : (this.currentGroupKey === 'short' ? 0.9 : 1.1);
+            
+            // 必殺スキル発動判定チェック
+            let hitDamage = 2.2 * mult;
+            if (this.combo === jewel.skillCombo) {
+                this.triggerSkill(jewel);
+                hitDamage *= 3.5; // スキル発動時は大ダメージ
+            }
+
+            this.rivalHp = Math.max(0, this.rivalHp - hitDamage);
+            this.score += Math.round(40 * mult);
+
+            if (this.charIdx >= this.activeRoma.length) {
+                this.playSound('break');
+                this.crushedTotal++;
+                this.pt += 25;
+                this.rivalHp = Math.max(0, this.rivalHp - 8);
+
+                if (this.isOnline && this.rivalHp <= 0) {
+                    this.endBattle(false, true);
+                    return;
+                }
+                this.loadNextWord();
+            } else {
+                this.updateBattleText();
+            }
+        } else {
+            this.combo = 0;
+            this.playSound('miss');
+            const card = document.getElementById('wordCard');
+            card.classList.remove('miss-flash');
+            void card.offsetWidth;
+            card.classList.add('miss-flash');
+            this.updateBattleText();
+        }
+    }
+
+    triggerSkill(jewel) {
+        this.playSound('skill');
+        let extraMsg = "";
+
+        if (jewel.name === "水晶") {
+            this.score += 300;
+            extraMsg = " (スコア＋300)";
+        } else if (jewel.name === "翡翠") {
+            this.playerHp = Math.min(100, this.playerHp + 25);
+            document.getElementById('playerHpBar').style.width = `${this.playerHp}%`;
+            extraMsg = " (HP＋25回復)";
+        } else if (jewel.name === "金剛ダイヤモンド") {
+            this.rivalHp = Math.max(0, this.rivalHp - 30);
+            extraMsg = " (相手に特大30ダメージ)";
+        } else if (jewel.name === "虹彩の賢者石") {
+            this.playerHp = 100;
+            document.getElementById('playerHpBar').style.width = `100%`;
+            this.rivalHp = Math.max(0, this.rivalHp - 40);
+            extraMsg = " (完全回復＆相手に40ダメージ)";
+        } else {
+            this.rivalHp = Math.max(0, this.rivalHp - 20);
+            extraMsg = " (相手に強力な直撃ダメージ)";
+        }
+
+        alert(`✨ 【必殺スキル発動】 ${jewel.name} の「${jewel.skillName}」が炸裂！${extraMsg}`);
+    }
+
+    endBattle(isRetire, isWin = true) {
+        if (this.battleTimer) clearInterval(this.battleTimer);
+        if (!isRetire && this.isOnline) {
+            if (isWin) {
+                this.pt += 200;
+                alert(`🏆 勝利！相手の鉱石を粉砕しました！\n報酬：+200 Pt`);
+            } else {
+                this.pt += 40;
+                alert(`💀 敗北... 次は必殺スキルを素早く発動させよう！\n報酬：+40 Pt`);
+            }
+        }
+        this.showScreen('screen-home');
+    }
+}
+
+const app = new KosekiTypingApp();
+</script>
+</body>
+</html>
