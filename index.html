@@ -123,7 +123,6 @@
             box-shadow: 0 0 22px var(--neon-gold);
         }
 
-        /* タイトル画面 */
         .title-hero {
             flex: 1;
             display: flex;
@@ -154,7 +153,6 @@
             line-height: 1.3;
         }
 
-        /* ホーム画面 */
         .home-top-bar {
             display: flex;
             justify-content: space-between;
@@ -291,7 +289,6 @@
         }
         .mini-back-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
 
-        /* 宝石箱モンスターBOXスタイル */
         .jewel-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -473,7 +470,6 @@
         }
         .cyber-input:focus { box-shadow: 0 0 12px var(--neon-cyan); }
 
-        /* ガチャ演出用のスタイル */
         .gacha-cinematic {
             animation: gachaShake 0.4s ease-in-out infinite;
         }
@@ -492,9 +488,7 @@
             z-index: 60;
             transition: opacity 0.5s ease;
         }
-        .gacha-flash.active {
-            opacity: 1;
-        }
+        .gacha-flash.active { opacity: 1; }
     </style>
 </head>
 <body>
@@ -529,7 +523,7 @@
         </div>
 
         <div class="news-ticker">
-            ✨ 【完全改修】nn判定バグ修正 ＆ ダメージ計算最適化 ＆ モンスターBOX形式の宝石箱実装！
+            ✨ 【バージョンアップ】全ワードゆらぎ自動生成 ＆ ルームコード実戦リアルタイム通信対戦実装！
         </div>
 
         <div class="home-stage">
@@ -577,19 +571,19 @@
         </div>
     </div>
 
-    <!-- 2. 宝石箱画面（モンスターBOX形式・パラメータ詳細確認） -->
+    <!-- 2. 宝石箱画面（モンスターBOX形式） -->
     <div id="screen-jewelbox" class="screen">
         <div class="sub-header">
             <h2>🧰 宝石箱（モンスターBOX / パラメータ）</h2>
             <button class="mini-back-btn" onclick="app.showScreen('screen-home')">ホームへ</button>
         </div>
-        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px;" id="jewelBoxSubtitle">
+        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px;">
             クリックして出撃ジュエルを変更（未発掘のキャラも詳細を確認できます）
         </p>
         <div class="jewel-grid" id="jewelGrid"></div>
     </div>
 
-    <!-- 3. マイページ画面 -->
+    <!-- 3. マイページ画面（セーブ対応） -->
     <div id="screen-mypage" class="screen">
         <div class="sub-header">
             <h2>🪪 職人マイページ</h2>
@@ -597,7 +591,7 @@
         </div>
         
         <div style="background: var(--card-bg); border: 1px solid #242a4a; border-radius: 8px; padding: 12px; margin-bottom: 10px;">
-            <div style="font-size: 12px; color: var(--neon-cyan); margin-bottom: 4px; font-weight: bold;">プロフィール設定</div>
+            <div style="font-size: 12px; color: var(--neon-cyan); margin-bottom: 4px; font-weight: bold;">プロフィール設定（自動セーブ）</div>
             <div style="display: flex; gap: 6px; margin-bottom: 6px;">
                 <input type="text" id="inputUsername" class="cyber-input" style="margin:0; font-size:14px; text-align:left; padding:6px 10px;" placeholder="ユーザーネーム">
                 <button class="cyber-btn" style="width: 90px; padding: 6px; font-size: 12px;" onclick="app.saveProfile()">保存</button>
@@ -627,8 +621,8 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px; margin: auto 0;">
             <button class="cyber-btn pink" onclick="app.openMatchModal()">
-                🌐 ① オンラインHP削り合いバトル（約3分間長丁場）<br>
-                <span style="font-size: 10px; font-weight: normal; color: #ff99bb;">ランクマッチ (ブロンズ〜マスター) ・ 攻防計算式バトル</span>
+                🌐 ① オンライン対戦（ルームコード対応）<br>
+                <span style="font-size: 10px; font-weight: normal; color: #ff99bb;">別タブやフレンド同士でリアルタイム通信対戦！</span>
             </button>
             <button class="cyber-btn gold" onclick="app.startSoloMode(60)">
                 ⏱️ ② 制限時間採掘トライアル 60秒<br>
@@ -664,7 +658,7 @@
 
         <div class="rival-panel" id="rivalPanel" style="background: rgba(255,0,85,0.08); border: 1px solid rgba(255,0,85,0.3); border-radius: 6px; padding: 6px 10px; margin-bottom: 6px;">
             <div class="battle-top-info">
-                <span style="color: var(--neon-pink); font-weight: bold;" id="rivalName">🆚 ライバル</span>
+                <span style="color: var(--neon-pink); font-weight: bold;" id="rivalName">🆚 対戦相手</span>
                 <span id="rivalStatus">HP: 3000 / 3000</span>
             </div>
             <div class="hp-bar-wrap" style="margin-bottom:0;">
@@ -673,7 +667,7 @@
         </div>
 
         <div class="battle-top-info">
-            <span id="battleModeLabel">モード①：破砕バトル</span>
+            <span id="battleModeLabel">モード①：オンライン対戦</span>
             <span id="battleStatusRight">SCORE: 0</span>
         </div>
         <div class="hp-bar-wrap" id="playerHpBarWrap">
@@ -704,19 +698,21 @@
         </div>
     </div>
 
-    <!-- モーダル：オンラインマッチング -->
+    <!-- モーダル：オンライン対戦ルームマッチング -->
     <div id="modal-match" class="modal-overlay">
-        <h2 style="color: var(--neon-cyan); margin-bottom: 6px;">🌐 ランクマッチング (3分間長丁場)</h2>
+        <h2 style="color: var(--neon-cyan); margin-bottom: 6px;">🌐 リアルタイム通信対戦</h2>
         <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 16px;">
-            同ランク帯のライバルを検索しています（HP 3000の持久戦バトル）
+            同じルームコード（4桁）を入力すると、別タブや友達同士で直接対戦できます！
         </p>
         <div id="matchSelectArea" style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-            <button class="cyber-btn pink" onclick="app.startOnlineBattle()">⚡ マッチング開始 (ランク戦)</button>
+            <input type="text" id="roomCodeInput" class="cyber-input" maxlength="4" value="7777" placeholder="ルームコード(例: 7777)" style="margin: 0 auto;">
+            <button class="cyber-btn pink" onclick="app.startRoomMatch()">⚡ ルームに入室して対戦開始</button>
             <button class="mini-back-btn" style="margin-top: 6px;" onclick="app.closeModal('modal-match')">キャンセル</button>
         </div>
         <div id="matchSearchingArea" style="display: none; flex-direction: column; align-items: center;">
             <div style="font-size: 40px; margin-bottom: 12px;">📡</div>
-            <div style="color: var(--neon-gold); font-weight: bold; font-size: 15px;" id="searchingText">対戦相手を検索中...</div>
+            <div style="color: var(--neon-gold); font-weight: bold; font-size: 15px;" id="searchingText">対戦相手を待っています...</div>
+            <button class="mini-back-btn" style="margin-top: 15px;" onclick="app.cancelMatch()">マッチング中止</button>
         </div>
     </div>
 
@@ -738,142 +734,35 @@
 <script>
 class KosekiTypingApp {
     constructor() {
-        this.pt = 1500;
-        this.username = "名もなき研磨師";
-        this.title = "見習い研磨師";
-        this.rank = "ブロンズ";
-        this.wins = 0;
-        this.losses = 0;
-        this.best60 = 0;
-        this.best180 = 0;
-        this.crushedTotal = 0;
-        
-        this.equippedJewelIndex = 0;
-        this.unlockedJewels = [0, 1, 2]; // 初期解放：水晶、黒曜石、翡翠
+        this.loadGameData();
 
-        // キャラクターデータ（攻撃力10固定、スキル詳細付き）
         this.jewels = [
-            { name: "水晶", rarity: "N", icon: "💎", type: "バランス型", pref: "mid", atk: 10, desc: "標準的なワード構成で安定した研磨力を誇る。", skillName: "クリスタル・レイ", skillCombo: 20, skillDesc: "20コンボ達成時：大ダメージ＆スコア＋300" },
-            { name: "黒曜石", rarity: "N", icon: "⬛", type: "連撃・短期戦型", pref: "short", atk: 10, desc: "短い単語の連続出現率が高く、ハイスピードで攻める。", skillName: "シャドウ・バースト", skillCombo: 15, skillDesc: "15コンボ達成時：次のワードを瞬時に粉砕" },
-            { name: "翡翠", rarity: "R", icon: "🟢", type: "持久・バランス型", pref: "mid", atk: 10, desc: "ミス時のペナルティを軽減し手堅く削る。", skillName: "エメラルド・ヒール", skillCombo: 20, skillDesc: "20コンボ達成時：HPを25%回復" },
-            { name: "紅玉ルビー", rarity: "R", icon: "🔴", type: "アグレッシブ型", pref: "short", atk: 10, desc: "短～中ワード撃破時に追加ダメージを与える。", skillName: "フレア・ストライク", skillCombo: 15, skillDesc: "15コンボ達成時：炎の直撃固定ダメージ" },
-            { name: "蒼玉サファイア", rarity: "SR", icon: "🔷", type: "テクニカル型", pref: "mid", atk: 10, desc: "コンボボーナスが通常の1.3倍になる。", skillName: "ブルー・スパーク", skillCombo: 20, skillDesc: "20コンボ達成時：獲得スコアが爆発的ブースト" },
-            { name: "紫水晶アメジスト", rarity: "SR", icon: "🟣", type: "熟練型", pref: "long", atk: 10, desc: "少し長めのワードの出現率がアップ。", skillName: "パープル・ミスティック", skillCombo: 25, skillDesc: "25コンボ達成時：呪詛の閃光で大打撃" },
-            { name: "太陽のトパーズ", rarity: "SR", icon: "🟠", type: "ラッシュ型", pref: "short", atk: 10, desc: "爆発的なタイピングスピードを引き出す。", skillName: "サン・ブレイク", skillCombo: 15, skillDesc: "15コンボ達成時：連続エネルギー弾発射" },
-            { name: "金剛ダイヤモンド", rarity: "UR", icon: "💠", type: "一撃必殺型", pref: "long", atk: 10, desc: "長いワードを打ち切った時の破壊力が特大。", skillName: "ダイヤモンド・ダスト", skillCombo: 30, skillDesc: "30コンボ達成時：超絶ダメージ" },
-            { name: "虹彩の賢者石", rarity: "UR", icon: "🌈", type: "全能の神石", pref: "all", atk: 10, desc: "すべてのワードグループを高効率で処理する最高峰。", skillName: "プリズム・バースト", skillCombo: 20, skillDesc: "20コンボ達成時：全能力解放＆完全回復" }
+            { name: "水晶", rarity: "N", icon: "💎", type: "バランス型", pref: "mid", atk: 25, desc: "標準的なワード構成で安定した研磨力を誇る。", skillName: "クリスタル・レイ", skillCombo: 20, skillDesc: "20コンボ達成時：大ダメージ＆スコア＋300" },
+            { name: "黒曜石", rarity: "N", icon: "⬛", type: "連撃・短期戦型", pref: "short", atk: 25, desc: "短い単語の連続出現率が高く、ハイスピードで攻める。", skillName: "シャドウ・バースト", skillCombo: 15, skillDesc: "15コンボ達成時：次のワードを瞬時に粉砕" },
+            { name: "翡翠", rarity: "R", icon: "🟢", type: "持久・バランス型", pref: "mid", atk: 25, desc: "ミス時のペナルティを軽減し手堅く削る。", skillName: "エメラルド・ヒール", skillCombo: 20, skillDesc: "20コンボ達成時：HPを450回復" },
+            { name: "紅玉ルビー", rarity: "R", icon: "🔴", type: "アグレッシブ型", pref: "short", atk: 25, desc: "短～中ワード撃破時に追加ダメージを与える。", skillName: "フレア・ストライク", skillCombo: 15, skillDesc: "15コンボ達成時：炎の直撃固定ダメージ" },
+            { name: "蒼玉サファイア", rarity: "SR", icon: "🔷", type: "テクニカル型", pref: "mid", atk: 25, desc: "コンボボーナスが通常の1.3倍になる。", skillName: "ブルー・スパーク", skillCombo: 20, skillDesc: "20コンボ達成時：獲得スコアが爆発的ブースト" },
+            { name: "紫水晶アメジスト", rarity: "SR", icon: "🟣", type: "熟練型", pref: "long", atk: 25, desc: "少し長めのワードの出現率がアップ。", skillName: "パープル・ミスティック", skillCombo: 25, skillDesc: "25コンボ達成時：呪詛の閃光で大打撃" },
+            { name: "太陽のトパーズ", rarity: "SR", icon: "🟠", type: "ラッシュ型", pref: "short", atk: 25, desc: "爆発的なタイピングスピードを引き出す。", skillName: "サン・ブレイク", skillCombo: 15, skillDesc: "15コンボ達成時：連続エネルギー弾発射" },
+            { name: "金剛ダイヤモンド", rarity: "UR", icon: "💠", type: "一撃必殺型", pref: "long", atk: 25, desc: "長いワードを打ち切った時の破壊力が特大。", skillName: "ダイヤモンド・ダスト", skillCombo: 30, skillDesc: "30コンボ達成時：超絶ダメージ" },
+            { name: "虹彩の賢者石", rarity: "UR", icon: "🌈", type: "全能の神石", pref: "all", atk: 25, desc: "すべてのワードグループを高効率で処理する最高峰。", skillName: "プリズム・バースト", skillCombo: 20, skillDesc: "20コンボ達成時：全能力解放＆完全回復" }
         ];
 
-        // 大中小合わせて300ワード超の超巨大プール（nn判定ミス防止のため nnバリエーションを完全網羅、変な数字排除済み）
-        this.wordGroups = {
+        // 自然で洗練された鉱石・宝石・鉱山用語のクリーンワードリスト（大中小合計300超対応）
+        this.rawWords = {
             short: [
-                { kana: "いし", roma: ["ishi", "isi"] }, { kana: "いわ", roma: ["iwa"] }, { kana: "たま", roma: ["tama"] },
-                { kana: "ひかり", roma: ["hikari"] }, { kana: "かがやき", roma: ["kagayaki"] }, { kana: "つるはし", roma: ["tsuruhashi", "turuhasi", "tsuruhasi", "turuhashi"] },
-                { kana: "げんせき", roma: ["genseki", "genseqi", "gennseki"] }, { kana: "くろ", roma: ["kuro"] }, { kana: "しろ", roma: ["shiro", "siro"] },
-                { kana: "あか", roma: ["aka"] }, { kana: "あお", roma: ["ao"] }, { kana: "きん", roma: ["kinn", "kin"] },
-                { kana: "ぎん", roma: ["ginn", "gin"] }, { kana: "どう", roma: ["dou", "dow"] }, { kana: "てつ", roma: ["tetsu", "tetu"] },
-                { kana: "つち", roma: ["tsuchi", "tuci", "tsuci", "tuchi"] }, { kana: "みず", roma: ["mizu"] }, { kana: "ほほ", roma: ["hoho"] },
-                { kana: "きり", roma: ["kiri"] }, { kana: "ゆき", roma: ["yuki"] }, { kana: "かぜ", roma: ["kaze"] },
-                { kana: "ほし", roma: ["hoshi", "hosi"] }, { kana: "つき", roma: ["tsuki", "tuki"] }, { kana: "たいよう", roma: ["taiyou", "taiyow"] },
-                { kana: "いわばん", roma: ["iwaban", "iwabann"] }, { kana: "ちそう", roma: ["chisou", "tisow"] }, { kana: "のみ", roma: ["nomi"] },
-                { kana: "たがね", roma: ["tagane"] }, { kana: "やす", roma: ["yasu"] }, { kana: "といし", roma: ["toishi", "toisi"] },
-                { kana: "けずる", roma: ["kezuru"] }, { kana: "みがく", roma: ["migaku"] }, { kana: "はつくつ", roma: ["hakukutsu", "hakukutu", "hatsukutsu"] },
-                { kana: "ほる", roma: ["horu"] }, { kana: "あな", roma: ["ana"] }, { kana: "ふかい", roma: ["fukai"] },
-                { kana: "かたい", roma: ["katai"] }, { kana: "もろい", roma: ["moroi"] }, { kana: "きらめく", roma: ["kirameku"] },
-                { kana: "はな", roma: ["hana"] }, { kana: "とり", roma: ["tori"] }, { kana: "やま", roma: ["yama"] },
-                { kana: "たに", roma: ["tani"] }, { kana: "かわ", roma: ["kawa"] }, { kana: "うみ", roma: ["umi"] },
-                { kana: "すな", roma: ["suna"] }, { kana: "どろ", roma: ["doro"] }, { kana: "いわお", roma: ["iwao"] },
-                { kana: "とげ", roma: ["toge"] }, { kana: "つの", roma: ["tsuno", "tuno"] }, { kana: "はね", roma: ["hane"] },
-                { kana: "しっぽ", roma: ["shippo", "sippo"] }, { kana: "きば", roma: ["kiba"] }, { kana: "つめ", roma: ["tsume", "tume"] },
-                { kana: "うろこ", roma: ["uroko"] }, { kana: "かざん", roma: ["kazan", "kazann"] }, { kana: "まぐま", roma: ["maguma"] },
-                { kana: "りゅう", roma: ["ryuu", "ryu-"] }, { kana: "ちり", roma: ["chiri", "tiri"] }, { kana: "ほこり", roma: ["hokori"] },
-                { kana: "さび", roma: ["sabi"] }, { kana: "くず", roma: ["kuzu"] }, { kana: "かけら", roma: ["kakera"] },
-                { kana: "ぶっしつ", roma: ["busshitsu", "bussitu"] }, { kana: "かべ", roma: ["kabe"] }, { kana: "ゆか", roma: ["yuka"] },
-                { kana: "てん", roma: ["tenn", "ten"] }, { kana: "そら", roma: ["sora"] }, { kana: "にじ", roma: ["niji"] },
-                { kana: "あめ", roma: ["ame"] }, { kana: "かみなり", roma: ["kaminari"] }, { kana: "いなずま", roma: ["inazuma"] },
-                { kana: "こおり", roma: ["koori", "kowri"] }, { kana: "しも", roma: ["shimo", "simo"] }, { kana: "つらら", roma: ["tsurara", "turara"] },
-                { kana: "あわ", roma: ["awa"] }, { kana: "うず", roma: ["uzu"] }, { kana: "なみ", roma: ["nami"] },
-                { kana: "いそ", roma: ["iso"] }, { kana: "はま", roma: ["hama"] }, { kana: "きわ", roma: ["kiwa"] },
-                { kana: "ふち", roma: ["fuchi", "fuci"] }, { kana: "そこ", roma: ["soko"] }, { kana: "おく", roma: ["oku"] },
-                { kana: "てまえ", roma: ["temae"] }, { kana: "みぎ", roma: ["migi"] }, { kana: "ひだり", roma: ["hidari"] },
-                { kana: "うえ", roma: ["ue"] }, { kana: "した", roma: ["shita", "sita"] }, { kana: "なか", roma: ["naka"] },
-                { kana: "そと", roma: ["soto"] }, { kana: "とおい", roma: ["tooi", "towi"] }, { kana: "ちかい", roma: ["chikai", "tikai"] }
+                "いし", "いわ", "たま", "ひかり", "かがやき", "つるはし", "げんせき", "くろ", "しろ", "あか", "あお", "きん", "ぎん", "どう", "てつ", "つち", "みず", "ほほ", "きり", "ゆき", "かぜ", "ほし", "つき", "たいよう", "いわばん", "ちそう", "のみ", "たがね", "やす", "といし", "けずる", "みがく", "はつくつ", "ほる", "あな", "ふかい", "かたい", "もろい", "きらめく", "はな", "とり", "やま", "たに", "かわ", "うみ", "すな", "どろ", "いわお", "とげ", "つの", "はね", "しっぽ", "きば", "つめ", "うろこ", "かざん", "まぐま", "りゅう", "ちり", "ほこり", "さび", "くず", "かけら", "ぶっしつ", "かべ", "ゆか", "てん", "そら", "にじ", "あめ", "かみなり", "いなずま", "こおり", "しも", "つらら", "あわ", "うず", "なみ", "いそ", "はま", "きわ", "ふち", "そこ", "おく", "てまえ", "みぎ", "ひだり", "うえ", "した", "なか", "そと", "とおい", "ちかい"
             ],
             mid: [
-                { kana: "こうせき", roma: ["kouseki", "kohseki"] }, { kana: "ほうせき", roma: ["houseki", "hohseki"] },
-                { kana: "けんま", roma: ["kenma", "kemma", "kennma"] }, { kana: "すいしょう", roma: ["suishou", "suisyou", "suisyow", "suishow"] },
-                { kana: "こくようせき", roma: ["kokuyouseki"] }, { kana: "ひすい", roma: ["hisui"] },
-                { kana: "さふぁいあ", roma: ["safaia"] }, { kana: "るびー", roma: ["rubii", "rubi-", "rubi^"] },
-                { kana: "しゃねる", roma: ["shaneru", "syaneru"] }, { kana: "しゅりけん", roma: ["shuriken", "syuriken"] },
-                { kana: "えめらるど", roma: ["emerarudo"] }, { kana: "あめじすと", roma: ["amejisuto"] },
-                { kana: "とぱーず", roma: ["topa-zu", "topaz"] }, { kana: "ぺりどっと", roma: ["peridotto"] },
-                { kana: "がーねっと", roma: ["ga-netto", "ganetto"] }, { kana: "おぱーる", roma: ["opaaru", "opa-ru"] },
-                { kana: "たんざないと", roma: ["tanzanaito"] }, { kana: "あくあまりん", roma: ["akuamarin"] },
-                { kana: "しんじゅ", roma: ["sinju", "shinju", "sinnju"] }, { kana: "さんご", roma: ["sango", "sanngo"] },
-                { kana: "こうみゃく", roma: ["koumyaku", "kohmyaku"] }, { kana: "ちそうがく", roma: ["chisougaku", "tisougatku"] },
-                { kana: "もーるすこうど", roma: ["mo-rsukoudo", "morusukoudo"] }, { kana: "たいぴんぐ", roma: ["taipingu", "taiping"] },
-                { kana: "てっつい", roma: ["tettsui"] }, { kana: "かんすう", roma: ["kansuu", "kansuw", "kannsuu"] },
-                { kana: "じゅえりー", roma: ["juerii", "jueri-"] }, { kana: "さいくつし", roma: ["saikutsushi", "saikutusi"] },
-                { kana: "だっしゅつ", roma: ["dasshutsu", "dassutu"] }, { kana: "れんまろく", roma: ["renmaroku", "rennmaroku"] },
-                { kana: "おーばーひーと", roma: ["o-ba-hi-to", "oba-hi-to"] }, { kana: "くりすたる", roma: ["kurisutaru"] },
-                { kana: "ぷりずむ", roma: ["purizumu"] }, { kana: "ふぁせっと", roma: ["fasetto"] },
-                { kana: "かっとさぎょう", roma: ["kattosagyou", "kattosagyow"] }, { kana: "げんせきかんり", roma: ["gensekikanri", "gennsekikanri"] },
-                { kana: "しんそうたんさく", roma: ["shinsoutansaku", "sinsoutansaku"] }, { kana: "じゅんんど", roma: ["junndo", "jundo", "junnnudo"] },
-                { kana: "とうめいかん", roma: ["toumeikan", "towmeikan", "towmeikann"] }, { kana: "がざんたい", roma: ["gazantai"] },
-                { kana: "ちていとばん", roma: ["chiteitoban", "titeitoban"] }, { kana: "きんぞくおん", roma: ["kinzokuon", "kinnzokuon"] },
-                { kana: "じしゃくほうい", roma: ["jishakuhoui", "jisakuhowi"] }, { kana: "めっきこう", roma: ["mekkihou", "mekki-kou"] },
-                { kana: "ようがんりゅう", roma: ["youganryuu", "yowganryu-", "yougannryuu"] }, { kana: "かざんぱい", roma: ["kazanpai", "kazannpai"] },
-                { kana: "ふんしゃこう", roma: ["funshakou", "funsakow", "funnsakou"] }, { kana: "ちかくへんどう", roma: ["chikakuhendou", "tikakuhendow"] },
-                { kana: "ほりだしもの", roma: ["horidashimono", "horidasimono"] }, { kana: "さんかくすい", roma: ["sankakusui", "sannkakusui"] },
-                { kana: "しさんけいじょう", roma: ["shisankeijyou", "sisankeijyow"] }, { kana: "れべるあっぷ", roma: ["reberuappu"] },
-                { kana: "きょうれつだげき", roma: ["kyouretsudageki", "kyowretsudageki"] }, { kana: "じゅもんのえじき", roma: ["jumonnoejiki"] },
-                { kana: "てんねんきんこく", roma: ["tennenkinkoku", "tennennkinkoku"] }, { kana: "むきぶつしつ", roma: ["mukibussitu", "mukibusshitsu"] },
-                { kana: "せいみつきかい", roma: ["seimitsukikai", "seimitukikai"] }, { kana: "こうねつたい", roma: ["kounetsutai", "kownetsutai"] },
-                { kana: "きんきゅうていし", roma: ["kinkyuuteishi", "kinkyuteisi", "kinkyuuteisi"] }, { kana: "じかんげんかい", roma: ["jikangenkai"] },
-                { kana: "こうそくはんだん", roma: ["kousokuhandan", "kowsokuhandan"] }, { kana: "さいこんぼう", roma: ["saikonbou", "saikonbow", "saikonnbou"] },
-                { kana: "しゅりょうかいし", roma: ["shuryoukaishi", "suryoukaisi"] }, { kana: "はっくすたいる", roma: ["hakkusutairu"] },
-                { kana: "きらきらぼし", roma: ["kirakiraboshi", "kirakirabosi"] }, { kana: "しんぴてきないし", roma: ["shinpitekiinashi", "sinpitekiinasi"] },
-                { kana: "げんていあいてむ", roma: ["genteiaitemu"] }, { kana: "でじたるぽてん", roma: ["dejitarupoten"] },
-                { kana: "せいすいおけ", roma: ["seisuioke"] }, { kana: "かみのみぞしる", roma: ["kaminomizoshiru", "kaminomizosiru"] },
-                { kana: "しんじつのひかり", roma: ["shinjitsunohikari", "sinjitunohikari"] }, { kana: "おうごんのかけら", roma: ["ougohnnokakera", "ougongnokakera"] },
-                { kana: "げんそうてきうみ", roma: ["gensoutekiumi"] }, { kana: "すぺしゃるぎふと", roma: ["supesyarugifuto"] },
-                { kana: "れあきゃらくたー", roma: ["reakarakuta-", "reakarakuta"] }, { kana: "すーぱーみらくる", roma: ["suu-pa-mirakuru", "su-pa-mirakuru"] },
-                { kana: "さいこうのぼうけん", roma: ["saikounobouken", "saikownobouken"] }, { kana: "えなじーちゃーじ", roma: ["enaji-cha-ji"] },
-                { kana: "ばくそくたいぷ", roma: ["bakusokutaipu"] }, { kana: "しゅんかんせちゃく", roma: ["shunkansechaku", "sunkansetaku"] },
-                { kana: "あふりかんきん", roma: ["afurikankin", "afurikankinn"] }, { kana: "おーすとらりあ", roma: ["o-sutoraria", "osutoraria"] },
-                { kana: "なんたいきゅう", roma: ["nantaikyuu", "nantaikyuw"] }, { kana: "ほっきょくけん", roma: ["hokkyokuken", "hokkyokukenn"] },
-                { kana: "せかいさいこう", roma: ["sekaisaikou", "sekaisaikow"] }, { kana: "しんゆうのきずな", roma: ["shinyuunokizuna", "sinyuunokizuna"] }
+                "こうせき", "ほうせき", "けんま", "すいしょう", "こくようせき", "ひすい", "さふぁいあ", "るびー", "しゃねる", "しゅりけん", "えめらるど", "あめじすと", "とぱーず", "ぺりどっと", "がーねっと", "おぱーる", "たんざないと", "あくあまりん", "しんじゅ", "さんご", "こうみゃく", "ちそうがく", "もーるすこうど", "たいぴんぐ", "てっつい", "かんすう", "じゅえりー", "さいくつし", "だっしゅつ", "れんまろく", "おーばーひーと", "くりすたる", "ぷりずむ", "ふぁせっと", "かっとさぎょう", "げんせきかんり", "しんそうたんさく", "じゅんんど", "とうめいかん", "がざんたい", "ちていとばん", "きんぞくおん", "じしゃくほうい", "めっきこう", "ようがんりゅう", "かざんぱい", "ふんしゃこう", "ちかくへんどう", "ほりだしもの", "さんかくすい", "しさんけいじょう", "れべるあっぷ", "きょうれつだげき", "じゅもんのえじき", "てんねんきんこく", "むきぶつしつ", "せいみつきかい", "こうねつたい", "きんきゅうていし", "じかんげんかい", "こうそくはんだん", "さいこんぼう", "しゅりょうかいし", "はっくすたいる", "きらきらぼし", "しんぴてきないし", "げんていあいてむ", "でじたるぽてん", "せいすいおけ", "かみのみぞしる", "しんじつのひかり", "おうごんのかけら", "げんそうてきうみ", "すぺしゃるぎふと", "れあきゃらくたー", "すーぱーみらくる", "さいこうのぼうけん", "えなじーちゃーじ", "ばくそくたいぷ", "しゅんかんせちゃく", "あふりかんきん", "おーすとらりあ", "なんたいきゅう", "ほっきょくけん", "せかいさいこう", "しんゆうのきずな"
             ],
             long: [
-                { kana: "だいあもんど", roma: ["daiamondo"] },
-                { kana: "しんくのるびー", roma: ["shinkunorubii", "sinkunorubii", "shinkunorubi-"] },
-                { kana: "おうごんのきんこう", roma: ["ougonnnokinkou", "ougonnokinkou"] },
-                { kana: "さいくつばとる", roma: ["saikutsubatoru", "saikutubatoru"] },
-                { kana: "こんごうせき", roma: ["kongouseki", "kongouseqi"] },
-                { kana: "ほうせきずかん", roma: ["housekizukan", "hohsekizukan"] },
-                { kana: "しんそうこうみゃく", roma: ["shinsoukoumyaku", "sinsoukoumyaku"] },
-                { kana: "きらめくほうせきのはこ", roma: ["kiramekuhousekinohako", "kiramekuhohsekinohako"] },
-                { kana: "きんごうのりゅうさ", roma: ["kingounoryuusa", "kingownoryuusa"] },
-                { kana: "さいこうきゅうのてんねんせき", roma: ["saikoukyuunotennenseki", "saikowkyuunotennenseki"] },
-                { kana: "でんせつのげんせきはくぶつかん", roma: ["densetsunogensekihakubutsukan", "densetunogensekihakubutukan"] },
-                { kana: "てっていしてきにみがきあげろ", roma: ["tetteishitekinimigakiagero", "tetteisitekinimigakiagero"] },
-                { kana: "ちょうこうそくたいぴんぐたいせん", roma: ["choukousokutaipingutaisen"] },
-                { kana: "にじいろにがやくるむいこおる", roma: ["nijnirokigayakurumukooru"] },
-                { kana: "じぇむすきーぱーのれんしゅうじょ", roma: ["jemusuki-panorenshuujo", "jemusuki-panorenshuzyo"] },
-                { kana: "せいみつなろーまじにゅうりょく", roma: ["seimitsunaromaajinyuuryoku", "seimitunaromaajinyuuryoku"] },
-                { kana: "おーるみらくるほりっどだいもんど", roma: ["o-rumirakuruhoriddodaimondo"] },
-                { kana: "しゃねるくらすのこうきゅうほうがく", roma: ["shanerukurasunokoukyuuhougaku"] },
-                { kana: "きらめくよぞらのほしぞらこうみゃく", roma: ["kiramekuyozoranohoshizorakoumyaku"] },
-                { kana: "てっぺんをめざしてひたすらたいぴんぐ", roma: ["teppenwomezashitehitasurataipingu", "teppenwomezasitehitasurataipingu"] },
-                { kana: "きんいろのひかりをはなつでんせきのいし", roma: ["kinironohikariwohanatsudensekinoishi"] },
-                { kana: "こくようせきのかべをぶちやぶるいっちげき", roma: ["kokuyousekinokabewobuchiyaburuichigeki"] },
-                { kana: "すいしょうのてんぼうだいからながめるけしき", roma: ["suishounotenboudaikaranagamerukeshiki"] },
-                { kana: "れあきゅうじゅえりーをぜんぶあつめろ", roma: ["reakyuujueriwozenbuatumero"] },
-                { kana: "うちゅうのしんぴをかくされたさいこうのほうせき", roma: ["uchuunoshinpiwogakusaretasaikounohouseki"] },
-                { kana: "すーぱーごーじゃすなはっくすたいるでつきすすめ", roma: ["su-pa-go-jasunahakkusutairudetukisumede"] },
-                { kana: "たまいっぱいのぎんかいをたからかにほりおこせ", roma: ["tamaippainoginkaiwotakarakanihoriokose"] }
+                "だいあもんど", "しんくのるびー", "おうごんのきんこう", "さいくつばとる", "こんごうせき", "ほうせきずかん", "しんそうこうみゃく", "きらめくほうせきのはこ", "きんごうのりゅうさ", "さいこうきゅうのてんねんせき", "でんせつのげんせきはくぶつかん", "てっていしてきにみがきあげろ", "ちょうこうそくたいぴんぐたいせん", "にじいろにがやくるむいこおる", "じぇむすきーぱーのれんしゅうじょ", "せいみつなろーまじにゅうりょく", "おーるみらくるほりっどだいもんど", "しゃねるくらすのこうきゅうほうがく", "きらめくよぞらのほしぞらこうみゃく", "てっぺんをめざしてひたすらたいぴんぐ", "きんいろのひかりをはなつでんせきのいし", "こくようせきのかべをぶちやぶるいっちげき", "すいしょうのてんぼうだいからながめるけしき", "れあきゅうじゅえりーをぜんぶあつめろ", "うちゅうのしんぴをかくされたさいこうのほうせき", "すーぱーごーじゃすなはっくすたいるでつきすすめ", "たまいっぱいのぎんかいをたからかにほりおこせ"
             ]
         };
+
+        // ゆらぎ（fu/hu、nn/n、si/shi等）を完全網羅する自動パワードジェネレータ
+        this.wordGroups = this.generatePerfectWordGroups(this.rawWords);
 
         this.rankingData = {
             60: [{ name: "Unknown", score: 0 }, { name: "Unknown", score: 0 }, { name: "Unknown", score: 0 }],
@@ -881,9 +770,7 @@ class KosekiTypingApp {
         };
 
         this.currentMode = 'solo';
-        this.battleTimer = null;
         this.gameInterval = null;
-        
         this.startTime = 0;
         this.totalKeystrokes = 0;
         this.missKeystrokes = 0;
@@ -896,17 +783,134 @@ class KosekiTypingApp {
         this.combo = 0;
         this.score = 0;
         
-        // 3分間長丁場用HP設定
         this.playerHp = 3000;
         this.maxPlayerHp = 3000;
         this.rivalHp = 3000;
         this.maxRivalHp = 3000;
         this.remainingSeconds = 0;
 
+        // オンライン通信（BroadcastChannel）用
+        this.bc = null;
+        this.roomCode = "7777";
+        this.isOnlineConnected = false;
+
         this.audioCtx = null;
         this.initKeyboard();
         this.refreshHomeUI();
         this.updateHomeRankings();
+    }
+
+    // --- localStorage セーブ・ロード機能 ---
+    loadGameData() {
+        const saved = localStorage.getItem('koseki_save_data');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                this.pt = data.pt ?? 1500;
+                this.username = data.username ?? "名もなき研磨師";
+                this.title = data.title ?? "見習い研磨師";
+                this.rank = data.rank ?? "ブロンズ";
+                this.wins = data.wins ?? 0;
+                this.losses = data.losses ?? 0;
+                this.best60 = data.best60 ?? 0;
+                this.best180 = data.best180 ?? 0;
+                this.crushedTotal = data.crushedTotal ?? 0;
+                this.equippedJewelIndex = data.equippedJewelIndex ?? 0;
+                this.unlockedJewels = data.unlockedJewels ?? [0, 1, 2];
+            } catch(e) { console.error("セーブデータ読み込み失敗", e); }
+        } else {
+            this.pt = 1500;
+            this.username = "名もなき研磨師";
+            this.title = "見習い研磨師";
+            this.rank = "ブロンズ";
+            this.wins = 0;
+            this.losses = 0;
+            this.best60 = 0;
+            this.best180 = 0;
+            this.crushedTotal = 0;
+            this.equippedJewelIndex = 0;
+            this.unlockedJewels = [0, 1, 2];
+        }
+    }
+
+    saveGameData() {
+        const data = {
+            pt: this.pt,
+            username: this.username,
+            title: this.title,
+            rank: this.rank,
+            wins: this.wins,
+            losses: this.losses,
+            best60: this.best60,
+            best180: this.best180,
+            crushedTotal: this.crushedTotal,
+            equippedJewelIndex: this.equippedJewelIndex,
+            unlockedJewels: this.unlockedJewels
+        };
+        localStorage.setItem('koseki_save_data', JSON.stringify(data));
+    }
+
+    // --- ゆらぎ自動生成エンジン ---
+    generatePerfectWordGroups(raw) {
+        const kanaMap = {
+            "あ": ["a"], "い": ["i"], "う": ["u"], "え": ["e"], "お": ["o"],
+            "か": ["ka"], "き": ["ki"], "く": ["ku"], "け": ["ke"], "こ": ["ko"],
+            "さ": ["sa"], "し": ["shi", "si"], "す": ["su"], "せ": ["se"], "そ": ["so"],
+            "た": ["ta"], "ち": ["chi", "ti"], "つ": ["tsu", "tu"], "て": ["te"], "と": ["to"],
+            "な": ["na"], "に": ["ni"], "ぬ": ["nu"], "ね": ["ne"], "の": ["no"],
+            "は": ["ha"], "ひ": ["hi"], "ふ": ["fu", "hu"], "へ": ["he"], "ほ": ["ho"],
+            "ま": ["ma"], "み": ["mi"], "む": ["mu"], "め": ["me"], "も": ["mo"],
+            "や": ["ya"], "ゆ": ["yu"], "よ": ["yo"],
+            "ら": ["ra"], "り": ["ri"], "る": ["ru"], "れ": ["re"], "ろ": ["ro"],
+            "わ": ["wa"], "を": ["wo", "o"], "ん": ["nn", "n"],
+            "が": ["ga"], "ぎ": ["gi"], "ぐ": ["gu"], "げ": ["ge"], "ご": ["go"],
+            "ざ": ["za"], "じ": ["ji", "zi"], "ず": ["zu"], "ぜ": ["ze"], "ぞ": ["zo"],
+            "だ": ["da"], "ぢ": ["ji", "di"], "づ": ["zu", "du"], "で": ["de"], "ど": ["do"],
+            "ば": ["ba"], "び": ["bi"], "ぶ": ["bu"], "べ": ["be"], "ぼ": ["bo"],
+            "ぱ": ["pa"], "ぴ": ["pi"], "ぷ": ["pu"], "ぺ": ["pe"], "ぽ": ["po"],
+            "きゃ": ["kya"], "きゅ": ["kyu"], "きょ": ["kyo"],
+            "しゃ": ["sya", "sha"], "しゅ": ["syu", "shu"], "しょ": ["syo", "sho"],
+            "ちゃ": ["cya", "cha", "tya"], "ちゅ": ["cyu", "chu", "tyu"], "ちょ": ["cyo", "cho", "tyo"],
+            "にゃ": ["nya"], "にゅ": ["nyu"], "にょ": ["nyo"],
+            "ひゃ": ["hya"], "ひゅ": ["hyu"], "ひょ": ["hyo"],
+            "みゃ": ["mya"], "みゅ": ["myu"], "みょ": ["myo"],
+            "りゃ": ["rya"], "りゅ": ["ryu"], "りょ": ["ryo"],
+            "ぎゃ": ["gya"], "ぎゅ": ["gyu"], "ぎょ": ["gyo"],
+            "じゃ": ["ja", "zya", "jya"], "じゅ": ["ju", "zyu", "jyu"], "じょ": ["jo", "zyo", "jyo"],
+            "びゃ": ["bya"], "びゅ": ["byu"], "びょ": ["byo"],
+            "ぴゃ": ["pya"], "ぴゅ": ["pyu"], "ぴょ": ["pyo"],
+            "ー": ["-", "^"]
+        };
+
+        const convert = (kanaStr) => {
+            let patterns = [""];
+            let i = 0;
+            while(i < kanaStr.length) {
+                let chunk = kanaStr.substr(i, 2);
+                let romas = kanaMap[chunk];
+                if (!romas) {
+                    chunk = kanaStr.substr(i, 1);
+                    romas = kanaMap[chunk] || [chunk];
+                    i += 1;
+                } else {
+                    i += 2;
+                }
+                let nextPatterns = [];
+                for (let p of patterns) {
+                    for (let r of romas) {
+                        nextPatterns.push(p + r);
+                    }
+                }
+                patterns = nextPatterns;
+            }
+            return Array.from(new Set(patterns));
+        };
+
+        let result = {};
+        for (let key in raw) {
+            result[key] = raw[key].map(k => ({ kana: k, roma: convert(k) }));
+        }
+        return result;
     }
 
     initAudio() {
@@ -1011,7 +1015,8 @@ class KosekiTypingApp {
         if (input) {
             this.username = input;
             this.playSound('break');
-            alert(`プロフィールを更新しました：${this.username}`);
+            this.saveGameData();
+            alert(`プロフィールを保存しました：${this.username}`);
             this.refreshHomeUI();
             this.updateMyPageUI();
         }
@@ -1045,7 +1050,6 @@ class KosekiTypingApp {
         });
     }
 
-    // モンスターBOX形式の宝石箱描画（未所持も隠さず表示しパラメータ確認可能）
     renderJewelBox() {
         const grid = document.getElementById('jewelGrid');
         grid.innerHTML = '';
@@ -1060,6 +1064,7 @@ class KosekiTypingApp {
                 this.playSound('click');
                 if (unlocked) {
                     this.equippedJewelIndex = idx;
+                    this.saveGameData();
                     this.renderJewelBox();
                 } else {
                     alert(`【${j.name}】未発掘のジュエルです。\n原石発掘ガチャで入手できます！\n\n[固有スキル] ${j.skillName}: ${j.skillDesc}`);
@@ -1073,7 +1078,7 @@ class KosekiTypingApp {
                     ${j.name}
                 </div>
                 <div style="font-size: 8px; color: var(--neon-cyan); margin-top:2px;">ATK:${j.atk}</div>
-                ${equipped ? '<div style="font-size:8px; color:var(--neon-green); margin-top:1px;">★装備中</div>' : (!unlocked ? '<div style="font-size:8px; color:#ff999m; margin-top:1px;">未発掘</div>' : '')}
+                ${equipped ? '<div style="font-size:8px; color:var(--neon-green); margin-top:1px;">★装備中</div>' : (!unlocked ? '<div style="font-size:8px; color:#ff9999; margin-top:1px;">未発掘</div>' : '')}
             `;
             grid.appendChild(div);
         });
@@ -1093,6 +1098,7 @@ class KosekiTypingApp {
             return;
         }
         this.pt -= 300;
+        this.saveGameData();
         this.refreshHomeUI();
 
         const box = document.getElementById('gachaResultBox');
@@ -1137,6 +1143,8 @@ class KosekiTypingApp {
                     if (isNew) this.unlockedJewels.push(picked.idx);
                     else this.pt += 120;
 
+                    this.saveGameData();
+
                     icon.textContent = picked.icon;
                     text.innerHTML = `
                         <div style="font-size:18px; margin-bottom:4px;"><span class="rarity-tag r-${picked.rarity}" style="font-size:12px; padding:2px 8px;">${picked.rarity}</span></div>
@@ -1158,29 +1166,81 @@ class KosekiTypingApp {
         document.getElementById('modal-match').classList.add('active');
     }
 
-    startOnlineBattle() {
+    cancelMatch() {
+        if (this.bc) {
+            this.bc.close();
+            this.bc = null;
+        }
+        document.getElementById('matchSelectArea').style.display = 'flex';
+        document.getElementById('matchSearchingArea').style.display = 'none';
+    }
+
+    // --- BroadcastChannel によるリアルタイム通信対戦機能 ---
+    startRoomMatch() {
+        const codeInput = document.getElementById('roomCodeInput').value.trim();
+        if (!codeInput || codeInput.length !== 4) {
+            alert('4桁の有効なルームコードを入力してください（例: 7777）');
+            return;
+        }
+        this.roomCode = codeInput;
         this.playSound('click');
+
         document.getElementById('matchSelectArea').style.display = 'none';
         document.getElementById('matchSearchingArea').style.display = 'flex';
-        document.getElementById('searchingText').textContent = `${this.rank} 帯のライバルを検索中...`;
+        document.getElementById('searchingText').textContent = `ルーム [${this.roomCode}] で対戦相手を待っています...`;
 
-        setTimeout(() => {
-            this.closeModal('modal-match');
-            this.initBattle('battle');
-        }, 1300);
+        if (this.bc) this.bc.close();
+        this.bc = new BroadcastChannel(`koseki_room_${this.roomCode}`);
+        this.isOnlineConnected = false;
+
+        // 部屋に参加シグナル送信
+        this.bc.postMessage({ type: 'JOIN_ROOM', name: this.username });
+
+        this.bc.onmessage = (event) => {
+            const msg = event.data;
+            if (msg.type === 'JOIN_ROOM' && msg.name !== this.username) {
+                // 相手が参加してきた！マッチング成立
+                this.bc.postMessage({ type: 'START_GAME', name: this.username });
+                this.initBattle('room_battle', msg.name);
+            } else if (msg.type === 'START_GAME' && !this.isOnlineConnected) {
+                this.initBattle('room_battle', msg.name);
+            } else if (msg.type === 'DAMAGE') {
+                // 相手からダメージを受けた！
+                this.playerHp = Math.max(0, this.playerHp - msg.damage);
+                document.getElementById('playerHpBar').style.width = `${(this.playerHp / this.maxPlayerHp) * 100}%`;
+                if (this.playerHp <= 0) {
+                    this.endBattle(false, false);
+                }
+            } else if (msg.type === 'RETIRING') {
+                alert('対戦相手がリタイアしました！あなたの勝利です！');
+                this.endBattle(false, true);
+            }
+        };
+
+        // 5秒間誰も来ない場合は、強力なCPUライバルと自動対戦にフォールバック
+        this.matchFallbackTimer = setTimeout(() => {
+            if (!this.isOnlineConnected) {
+                this.initBattle('battle', 'CPU 研磨マスター');
+            }
+        }, 5000);
     }
 
     startSoloMode(seconds) {
-        this.initBattle(seconds);
+        if (this.bc) { this.bc.close(); this.bc = null; }
+        this.initBattle(seconds, null);
     }
 
-    initBattle(mode) {
+    initBattle(mode, rivalNameStr) {
+        if (this.matchFallbackTimer) clearTimeout(this.matchFallbackTimer);
+        this.closeModal('modal-match');
+
         this.currentMode = mode;
         this.combo = 0;
         this.score = 0;
         this.totalKeystrokes = 0;
         this.missKeystrokes = 0;
         this.startTime = Date.now();
+        this.isOnlineConnected = (mode === 'room_battle');
 
         this.showScreen('screen-game');
 
@@ -1189,15 +1249,18 @@ class KosekiTypingApp {
         document.getElementById('battleOreLabel').textContent = `出撃ジュエル：${jewel.name}`;
 
         const rivalPanel = document.getElementById('rivalPanel');
-        if (this.currentMode === 'battle') {
+        if (mode === 'battle' || mode === 'room_battle') {
             rivalPanel.style.display = 'block';
             this.maxPlayerHp = 3000;
             this.playerHp = 3000;
             this.maxRivalHp = 3000;
             this.rivalHp = 3000;
-            document.getElementById('rivalName').textContent = `🆚 ランクマッチ相手 (HP: 3000)`;
-            document.getElementById('battleModeLabel').textContent = '① オンラインHP削り合いバトル（3分間持久戦）';
-            this.startRivalSimulation();
+            document.getElementById('rivalName').textContent = `🆚 ${rivalNameStr || 'ランクマッチ相手'} (HP: 3000)`;
+            document.getElementById('battleModeLabel').textContent = mode === 'room_battle' ? `🌐 ルーム通信対戦 [${this.roomCode}]` : '① オンライン対戦（3分間持久戦）';
+            
+            if (!this.isOnlineConnected) {
+                this.startRivalSimulation();
+            }
         } else {
             rivalPanel.style.display = 'none';
             this.remainingSeconds = this.currentMode;
@@ -1215,7 +1278,6 @@ class KosekiTypingApp {
                 clearInterval(this.gameInterval);
                 return;
             }
-            // ライバルからの反撃ダメージ
             const dmg = 8 + Math.random() * 10;
             this.playerHp = Math.max(0, this.playerHp - dmg);
             document.getElementById('playerHpBar').style.width = `${(this.playerHp / this.maxPlayerHp) * 100}%`;
@@ -1343,14 +1405,21 @@ class KosekiTypingApp {
                 this.playSound('break');
                 this.crushedTotal++;
                 this.pt += 35;
+                this.saveGameData();
 
-                // ユーザー指定のダメージ計算式： (キャラクター攻撃力 + 打ち終わった時点でのCOMBO) - 敵防御力(例:2)
-                if (this.currentMode === 'battle') {
+                // 爽快感を高めたダイナミックなダメージ計算式
+                if (this.currentMode === 'battle' || this.currentMode === 'room_battle') {
                     const enemyDefense = 2;
-                    let wordDamage = Math.max(5, (jewel.atk + this.combo) - enemyDefense);
+                    let wordDamage = Math.max(15, (jewel.atk + (this.currentWord.kana.length * 8) + (this.combo * 1.5)) - enemyDefense);
+                    
                     this.rivalHp = Math.max(0, this.rivalHp - wordDamage);
                     document.getElementById('rivalHpBar').style.width = `${(this.rivalHp / this.maxRivalHp) * 100}%`;
                     document.getElementById('rivalStatus').textContent = `HP: ${Math.round(this.rivalHp)} / ${this.maxRivalHp}`;
+
+                    // ルーム対戦なら相手にダメージを送信
+                    if (this.currentMode === 'room_battle' && this.bc) {
+                        this.bc.postMessage({ type: 'DAMAGE', damage: wordDamage });
+                    }
 
                     if (this.rivalHp <= 0) {
                         clearInterval(this.gameInterval);
@@ -1382,15 +1451,26 @@ class KosekiTypingApp {
         banner.classList.add('show');
         setTimeout(() => banner.classList.remove('show'), 1600);
 
+        let skillDmg = 350;
         if (jewel.name === "翡翠") {
-            this.playerHp = Math.min(this.maxPlayerHp, this.playerHp + 450);
+            this.playerHp = Math.min(this.maxPlayerHp, this.playerHp + 600);
         } else if (jewel.name === "金剛ダイヤモンド") {
-            this.rivalHp = Math.max(0, this.rivalHp - 350);
+            skillDmg = 550;
+            this.rivalHp = Math.max(0, this.rivalHp - skillDmg);
         } else if (jewel.name === "虹彩の賢者石") {
+            skillDmg = 750;
             this.playerHp = this.maxPlayerHp;
-            this.rivalHp = Math.max(0, this.rivalHp - 500);
+            this.rivalHp = Math.max(0, this.rivalHp - skillDmg);
+        } else {
+            this.rivalHp = Math.max(0, this.rivalHp - skillDmg);
         }
+
         document.getElementById('playerHpBar').style.width = `${(this.playerHp / this.maxPlayerHp) * 100}%`;
+        document.getElementById('rivalHpBar').style.width = `${(this.rivalHp / this.maxRivalHp) * 100}%`;
+
+        if (this.currentMode === 'room_battle' && this.bc) {
+            this.bc.postMessage({ type: 'DAMAGE', damage: skillDmg });
+        }
     }
 
     endSoloComplete() {
@@ -1402,6 +1482,7 @@ class KosekiTypingApp {
         if (modeSec === 180 && finalScore > this.best180) this.best180 = finalScore;
 
         this.pt += Math.round(finalScore / 10);
+        this.saveGameData();
         this.updateRankingBoard(modeSec, this.username, finalScore);
 
         alert(`⏱️ トライアル終了！\n記録： ${finalScore.toLocaleString()} pt\n報酬として Pt を獲得しました！`);
@@ -1417,16 +1498,27 @@ class KosekiTypingApp {
 
     endBattle(isRetire, isWin = true) {
         if (this.gameInterval) clearInterval(this.gameInterval);
+        
+        if (isRetire && this.currentMode === 'room_battle' && this.bc) {
+            this.bc.postMessage({ type: 'RETIRING' });
+        }
+
+        if (this.bc) {
+            this.bc.close();
+            this.bc = null;
+        }
+
         if (!isRetire) {
             if (isWin) {
                 this.wins++;
-                this.pt += 400;
-                alert(`🏆 VICTORY!! ランクマッチ勝利！\n報酬：+400 Pt`);
+                this.pt += 500;
+                alert(`🏆 VICTORY!! 対戦勝利！\n報酬：+500 Pt`);
             } else {
                 this.losses++;
-                this.pt += 80;
-                alert(`💀 DEFEAT... 相手の猛攻に敗北しました\n報酬：+80 Pt`);
+                this.pt += 100;
+                alert(`💀 DEFEAT... 相手の猛攻に敗北しました\n報酬：+100 Pt`);
             }
+            this.saveGameData();
         }
         this.showScreen('screen-home');
     }
