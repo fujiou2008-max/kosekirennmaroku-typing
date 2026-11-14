@@ -24,7 +24,7 @@
             margin: 0;
             padding: 0;
         }
-        
+
         body {
             background-color: #020204;
             background-image: 
@@ -354,7 +354,6 @@
             transition: width 0.1s;
         }
 
-        /* スキルゲージUI */
         .skill-gauge-box {
             background: #101426;
             border: 1px solid var(--neon-gold);
@@ -436,7 +435,6 @@
             50% { border-color: var(--neon-pink); background: rgba(255,0,85,0.2); }
         }
 
-        /* モーダル */
         .modal-overlay {
             display: none;
             position: absolute;
@@ -494,7 +492,7 @@
         </div>
 
         <div class="news-ticker">
-            ⚡ 【必殺スキル実装】一定コンボ達成で宝石の固有スキルが自動発動！大ダメージを叩き込め！
+            ✨ 【タイピングシステム改修】si/shi、しゃしゅしょ、伸ばし棒(-)、nnの複数入力に完全対応！
         </div>
 
         <div class="home-stage">
@@ -603,7 +601,6 @@
             <div class="hp-fill-player" id="playerHpBar"></div>
         </div>
 
-        <!-- スキル発動ゲージ・ステータスバー -->
         <div class="skill-gauge-box">
             <div>
                 <div class="skill-name-tag" id="battleSkillName">⚡ 必殺: クリスタル・レイ</div>
@@ -674,7 +671,6 @@ class KosekiTypingApp {
         this.equippedJewelIndex = 0;
         this.unlockedJewels = [0, 1, 2];
 
-        // 宝石データ（必殺スキル設定付き）
         this.jewels = [
             { 
                 name: "水晶", rarity: "N", icon: "💎", type: "バランス型", pref: "mid", 
@@ -723,33 +719,37 @@ class KosekiTypingApp {
             }
         ];
 
+        // ワードリスト：各単語に複数のローマ字パターン（si/shi、しゃしゅしょ、伸ばし棒、nn対応など）を網羅！
         this.wordGroups = {
             short: [
-                { kana: "いし", roma: ["ishi"] },
+                { kana: "いし", roma: ["ishi", "isi"] },
                 { kana: "いわ", roma: ["iwa"] },
                 { kana: "たま", roma: ["tama"] },
                 { kana: "ひかり", roma: ["hikari"] },
                 { kana: "かがやき", roma: ["kagayaki"] },
-                { kana: "つるはし", roma: ["tsuruhashi", "turuhasi"] },
-                { kana: "げんせき", roma: ["genseki"] }
+                { kana: "つるはし", roma: ["tsuruhashi", "turuhasi", "tsuruhasi", "turuhashi"] },
+                { kana: "げんせき", roma: ["genseki", "genseqi"] }
             ],
             mid: [
-                { kana: "こうせき", roma: ["kouseki", "kohseki"] },
-                { kana: "ほうせき", roma: ["houseki", "hohseki"] },
+                { kana: "こうせき", roma: ["kouseki", "kohseki", "kouseki"] },
+                { kana: "ほうせき", roma: ["houseki", "hohseki", "houseki"] },
                 { kana: "けんま", roma: ["kenma"] },
-                { kana: "すいしょう", roma: ["suishou", "suisyou"] },
+                { kana: "すいしょう", roma: ["suishou", "suisyou", "suisyow", "suishow"] },
                 { kana: "こくようせき", roma: ["kokuyouseki"] },
                 { kana: "ひすい", roma: ["hisui"] },
                 { kana: "さふぁいあ", roma: ["safaia"] },
-                { kana: "るびー", roma: ["rubii"] }
+                { kana: "るびー", roma: ["rubii", "rubi-", "rubi^"] },
+                { kana: "しゃねる", roma: ["shaneru", "syaneru"] },
+                { kana: "しゅりけん", roma: ["shuriken", "syuriken"] }
             ],
             long: [
                 { kana: "だいあもんど", roma: ["daiamondo"] },
-                { kana: "しんくのるびー", roma: ["shinkunorubii", "sinkunorubii"] },
-                { kana: "おうごんのきんこう", roma: ["ougonnnokinkou", "ougonnokinkou"] },
+                { kana: "しんくのるびー", roma: ["shinkunorubii", "sinkunorubii", "shinkunorubi-", "sinkunorubi-"] },
+                { kana: "おうごんのきんこう", roma: ["ougonnnokinkou", "ougonnokinkou", "ougongnokinkou"] },
                 { kana: "さいくつばとる", roma: ["saikutsubatoru", "saikutubatoru"] },
-                { kana: "こんごうせき", roma: ["kongouseki"] },
-                { kana: "ほうせきずかん", roma: ["housekizukan", "hohsekizukan"] }
+                { kana: "こんごうせき", roma: ["kongouseki", "kongouseqi"] },
+                { kana: "ほうせきずかん", roma: ["housekizukan", "hohsekizukan"] },
+                { kana: "しんそうこうみゃく", roma: ["shinsoukoumyaku", "sinsoukoumyaku", "shinsoukoumyaku"] }
             ]
         };
 
@@ -759,8 +759,8 @@ class KosekiTypingApp {
 
         this.currentGroupKey = 'mid';
         this.currentWord = null;
-        this.activeRoma = "";
-        this.charIdx = 0;
+        this.activeRomaPatterns = []; // 現在の有効な正解パターンリスト
+        this.typedInput = "";         // ユーザーが今打ち込んでいる文字列
         this.combo = 0;
         this.score = 0;
         this.playerHp = 100;
@@ -808,7 +808,6 @@ class KosekiTypingApp {
             gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
             osc.start(now); osc.stop(now + 0.28);
         } else if (type === 'skill') {
-            // スキル発動時の派手な高音
             osc.type = 'square';
             osc.frequency.setValueAtTime(440, now);
             osc.frequency.exponentialRampToValueAtTime(1320, now + 0.3);
@@ -961,7 +960,6 @@ class KosekiTypingApp {
         document.getElementById('battleOreIcon').textContent = jewel.icon;
         document.getElementById('battleOreLabel').textContent = `出撃宝石：${jewel.name} (${jewel.type})`;
         
-        // スキル表示の更新
         document.getElementById('battleSkillName').textContent = `⚡ 必殺: ${jewel.skillName}`;
         document.getElementById('battleSkillDesc').textContent = jewel.skillDesc;
 
@@ -1015,8 +1013,8 @@ class KosekiTypingApp {
         const w = list[Math.floor(Math.random() * list.length)];
 
         this.currentWord = w;
-        this.activeRoma = w.roma[0];
-        this.charIdx = 0;
+        this.activeRomaPatterns = [...w.roma]; // 複数の正解パターンをコピー
+        this.typedInput = "";                  // 入力バッファをリセット
         this.updateBattleText();
     }
 
@@ -1024,8 +1022,12 @@ class KosekiTypingApp {
         const groupNames = { short: '[短グループ]', mid: '[中グループ]', long: '[長グループ]' };
         document.getElementById('wordGroupLabel').textContent = groupNames[this.currentGroupKey];
         document.getElementById('kanaDisplay').textContent = this.currentWord.kana;
-        document.getElementById('romaTyped').textContent = this.activeRoma.substring(0, this.charIdx);
-        document.getElementById('romaRem').textContent = this.activeRoma.substring(this.charIdx);
+        
+        // 画面には、現在有効な正解パターンのうち最初のものを基準に表示
+        const baseRoma = this.activeRomaPatterns[0];
+        document.getElementById('romaTyped').textContent = this.typedInput;
+        document.getElementById('romaRem').textContent = baseRoma.substring(this.typedInput.length);
+
         document.getElementById('comboCount').textContent = this.combo;
         document.getElementById('battleScore').textContent = this.score;
         document.getElementById('rivalHpBar').style.width = `${this.rivalHp}%`;
@@ -1054,17 +1056,17 @@ class KosekiTypingApp {
         });
     }
 
+    // --- 複数ローマ字対応プレフィックスマッチ判定エンジン ---
     processChar(inputChar) {
-        const expected = this.activeRoma[this.charIdx];
+        const nextInput = this.typedInput + inputChar;
 
-        if (inputChar !== expected) {
-            const prefix = this.activeRoma.substring(0, this.charIdx) + inputChar;
-            const altMatch = this.currentWord.roma.find(r => r.startsWith(prefix));
-            if (altMatch) this.activeRoma = altMatch;
-        }
+        // 「残っている正解パターンのうち、nextInputで始まるもの」だけをフィルタリング
+        const validPatterns = this.activeRomaPatterns.filter(pattern => pattern.startsWith(nextInput));
 
-        if (inputChar === this.activeRoma[this.charIdx]) {
-            this.charIdx++;
+        if (validPatterns.length > 0) {
+            // 正解！
+            this.typedInput = nextInput;
+            this.activeRomaPatterns = validPatterns; // 候補を絞り込む
             this.combo++;
             if (this.combo > this.maxComboRecord) this.maxComboRecord = this.combo;
             this.playSound('type');
@@ -1077,17 +1079,20 @@ class KosekiTypingApp {
             const jewel = this.jewels[this.equippedJewelIndex];
             const mult = this.currentGroupKey === 'long' ? 1.5 : (this.currentGroupKey === 'short' ? 0.9 : 1.1);
             
-            // 必殺スキル発動判定チェック
             let hitDamage = 2.2 * mult;
             if (this.combo === jewel.skillCombo) {
                 this.triggerSkill(jewel);
-                hitDamage *= 3.5; // スキル発動時は大ダメージ
+                hitDamage *= 3.5;
             }
 
             this.rivalHp = Math.max(0, this.rivalHp - hitDamage);
             this.score += Math.round(40 * mult);
 
-            if (this.charIdx >= this.activeRoma.length) {
+            // いずれかのパターンと「完全一致」したかチェック
+            const isCompleted = validPatterns.some(pattern => pattern === this.typedInput);
+
+            if (isCompleted) {
+                // 1ワード粉砕完了！
                 this.playSound('break');
                 this.crushedTotal++;
                 this.pt += 25;
@@ -1102,6 +1107,7 @@ class KosekiTypingApp {
                 this.updateBattleText();
             }
         } else {
+            // ミスタイプ！
             this.combo = 0;
             this.playSound('miss');
             const card = document.getElementById('wordCard');
